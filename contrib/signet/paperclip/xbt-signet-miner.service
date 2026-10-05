@@ -1,0 +1,21 @@
+[Unit]
+Description=Paperclip test-only signet block signer
+After=xbt-signet.service
+Requires=xbt-signet.service
+[Service]
+User=xbt-signet
+Group=xbt-signet
+ExecStart=/usr/bin/python3 /opt/paperclip-xbt-signet/source/contrib/signet/xbt_miner.py --cli=/opt/paperclip-xbt-signet/bin/bitcoin-cli --datadir=/var/lib/paperclip-xbt-signet --key-file=/var/lib/paperclip-xbt-signet/signer.hex --reward-script-file=/var/lib/paperclip-xbt-signet/reward-script.hex --interval=60
+Restart=on-failure
+RestartSec=15
+Nice=15
+MemoryMax=100M
+CPUQuota=25%
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/paperclip-xbt-signet
+[Install]
+WantedBy=multi-user.target

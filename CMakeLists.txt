@@ -31,10 +31,10 @@ set(CLIENT_VERSION_MAJOR 29)
 set(CLIENT_VERSION_MINOR 4)
 set(CLIENT_VERSION_BUILD 2)
 set(CLIENT_VERSION_RC 0)
-set(CLIENT_VERSION_IS_RELEASE "true")
+set(CLIENT_VERSION_IS_RELEASE "false")
 set(COPYRIGHT_YEAR "2026")
 
-set(CLIENT_VERSION_SUFFIX ".knots20260508")
+set(CLIENT_VERSION_SUFFIX ".knots20260508.paperclip-signet1")
 
 # During the enabling of the CXX and CXXOBJ languages, we modify
 # CMake's compiler/linker invocation strings by appending the content

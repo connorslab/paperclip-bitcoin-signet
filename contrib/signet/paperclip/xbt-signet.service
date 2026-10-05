@@ -1,0 +1,23 @@
+[Unit]
+Description=Paperclip experimental XBT covenant signet
+After=network-online.target
+Wants=network-online.target
+[Service]
+User=xbt-signet
+Group=xbt-signet
+ExecStart=/opt/paperclip-xbt-signet/bin/bitcoind -datadir=/var/lib/paperclip-xbt-signet -printtoconsole
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=120
+Nice=10
+MemoryHigh=320M
+MemoryMax=450M
+CPUQuota=100%
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/paperclip-xbt-signet
+[Install]
+WantedBy=multi-user.target

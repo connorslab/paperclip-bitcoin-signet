@@ -3005,7 +3005,19 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
     // Check generation tx output sizes if REDUCED_DATA is active
     if (chk_input_rules.test(CheckTxInputsRules::OutputSizeLimit)) {
         TxValidationState tx_state;
-        if (!Consensus::CheckOutputSizes(*block.vtx[0], tx_state)) {
+        CMutableTransaction size_checked_coinbase{*block.vtx[0]};
+        // BIP325 carries its block signature after the witness commitment.
+        // Permit only that bounded, already verified test-signet envelope;
+        // ordinary coinbase outputs retain the RDTS limits.
+        if (consensusParams.experimental_covenants && consensusParams.signet_blocks) {
+            const int commitment_index = GetWitnessCommitmentIndex(block);
+            if (commitment_index >= 0) {
+                auto& script = size_checked_coinbase.vout[commitment_index].scriptPubKey;
+                if (script.size() > 160) return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-signet-commitment-size");
+                script.resize(38);
+            }
+        }
+        if (!Consensus::CheckOutputSizes(CTransaction{size_checked_coinbase}, tx_state)) {
             return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                                  tx_state.GetRejectReason(),
                                  tx_state.GetDebugMessage() + " in generation tx " + block.vtx[0]->GetHash().ToString());

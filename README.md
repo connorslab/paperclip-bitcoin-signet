@@ -1,80 +1,77 @@
-Bitcoin Knots
-=============
+# Paperclip XBT covenant signet
 
-https://bitcoinknots.org
+**Experimental software. Test coins only, with no monetary value. Not a mainnet upgrade.**
 
-For an immediately usable, binary version of the Bitcoin Knots software, see
-the website.
+This repository starts from Bitcoin Knots `v29.4.2.knots20260508`
+(`58398baf33e588779685ead478e6397bb28ed3d6`) and adds an isolated
+Blake2b/XBT signet for testing two draft proposals:
 
-What is Bitcoin Knots?
-----------------------
+- [BIP446 TEMPLATEHASH](https://bips.dev/446/), opcode `0xce`.
+- [BIP348 CHECKSIGFROMSTACK](https://bips.dev/348/), opcode `0xcc`.
 
-Bitcoin Knots connects to the Bitcoin peer-to-peer network to download and fully
-validate blocks and transactions. It also includes a wallet and graphical user
-interface, which can be optionally built.
+Deployment and validation are in progress. Do not treat this branch as a tested
+release until the release notes include passing tests and joining configuration.
 
-Further information about Bitcoin Knots is available in the [doc folder](/doc).
+## Rules and scope
 
-License
--------
+`-xbtcovtest` enables both opcodes only on custom signet or regtest. It is rejected
+on mainnet and other networks. Without that option, their existing OP_SUCCESS
+behavior and policy restrictions remain unchanged. Both instructions are defined
+only in tapscript. TEMPLATEHASH uses cached BIP341 components and the BIP446
+`TemplateHash` tag. CSFS verifies an arbitrary-length stack message directly with
+BIP340 Schnorr verification and charges the tapscript signature budget.
 
-Bitcoin Knots is released under the terms of the MIT license. See [COPYING](COPYING) for more
-information or see https://opensource.org/licenses/MIT.
+The experimental signet activates Blake2b header-v2 at height 1, uses easy fixed
+proof of work and a private block-signing challenge, and uses separate network
+magic. Genesis is the inherited signet genesis; subsequent blocks use Blake2b.
+The intended signer produces one block per minute. Coinbase maturity is 100
+blocks on this test network; this is not the mainnet maturity schedule.
 
-Development Process
--------------------
+RDTS is active. This experiment deliberately makes two exceptions: activated
+TEMPLATEHASH/CSFS opcodes, and the verified BIP325 signature envelope in the
+coinbase witness commitment (bounded to 160 bytes). Other output-size limits,
+annex restrictions, control-block limits and conditional-opcode restrictions remain.
+This is **not** consensus-compatible with unmodified XBT nodes.
 
-Development generally takes place as part of [Bitcoin Core](https://github.com/bitcoin/bitcoin), and is merged into
-Knots for each release.
+Upstream unified-sighash support is retained without changing its selection rules.
+CSFS verifies application messages: it does not automatically apply unified
+sighash or provide cross-chain replay protection. Use dedicated test keys and
+explicit application-domain commitments when designing protocols. Never reuse
+mainnet keys or assume these primitives alone provide a safe Ark or Lightning
+implementation.
 
-Even if your pull request to Core is closed, or if your feature is not
-suitable for Core (eg, because it builds on a feature not supported in Core;
-relies on centralised services; etc), it may still be eligible for inclusion
-in Bitcoin Knots. In this case, a pull request may be opened on the
-[Knots GitHub](https://github.com/bitcoinknots/bitcoin) for review and consideration.
-When accepted, you are expected to maintain the submitted branch in your own
-repository, and it will be automatically merged into new releases of Knots.
+## Build
 
-Developer IRC can be found on Freenode at #bitcoin-dev.
+On Ubuntu, install `cmake ninja-build g++ libevent-dev libboost-dev libsqlite3-dev`.
 
-Testing
--------
+```sh
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DBUILD_GUI=OFF -DBUILD_BENCH=OFF -DENABLE_IPC=OFF -DWITH_BDB=OFF
+cmake --build build -j 4
+ctest --test-dir build --output-on-failure -j 4 -R 'script|sighash|signet|pow|validation'
+python3 build/test/functional/feature_xbt_covenants.py
+python3 build/test/functional/feature_xbt_signet.py
+```
 
-Testing and code review is the bottleneck for development; we get more pull
-requests than we can review and test on short notice. Please be patient and help out by testing
-other people's pull requests, and remember this is a security-critical project where any mistake might cost people
-lots of money.
+The functional tests use disposable local chains and no real funds. The covenant
+test exercises default mempool policy, valid spends, altered-output rejection,
+mining and restart. The signet test exercises signed Blake2b block production.
+The unit suite includes the published BIP446 basic vectors and CSFS checks.
 
-### Automated Testing
+## Operations
 
-Developers are strongly encouraged to write [unit tests](src/test/README.md) for new code, and to
-submit new unit tests for old code. Unit tests can be compiled and run
-(assuming they weren't disabled during the generation of the build system) with: `ctest`. Further details on running
-and extending unit tests can be found in [/src/test/README.md](/src/test/README.md).
+Example systemd services are in `contrib/signet/paperclip/`. Keep this network in
+a dedicated data directory. Do not point it at a mainnet directory. Bind RPC to
+loopback and use its cookie authentication; expose only the signet P2P port.
+The block-signing key belongs only on the operator's signer, never in joining
+configuration, release archives or this repository. Never change consensus
+options in an existing datadir; network-rule changes require a new test network.
 
-There are also [regression and integration tests](/test), written
-in Python.
-These tests can be run (if the [test dependencies](/test) are installed) with: `build/test/functional/test_runner.py`
-(assuming `build` is your build directory).
+## Attribution
 
-The CI (Continuous Integration) systems make sure that every pull request is built for Windows, Linux, and macOS,
-and that unit/sanity tests are run automatically.
-
-### Manual Quality Assurance (QA) Testing
-
-Changes should be tested by somebody other than the developer who wrote the
-code. This is especially important for large or high-risk changes. It is useful
-to add a test plan to the pull request description if testing the changes is
-not straightforward.
-
-Translations
-------------
-
-Changes to translations as well as new translations can be submitted to
-[Bitcoin Core's Transifex page](https://explore.transifex.com/bitcoin/bitcoin/).
-
-Translations are periodically pulled from Transifex and merged into the git repository. See the
-[translation process](doc/translation_process.md) for details on how this works.
-
-**Important**: We do not accept translation changes as GitHub pull requests because the next
-pull from Transifex would automatically overwrite them again.
+Bitcoin Knots and Bitcoin Core remain the upstream foundations. TEMPLATEHASH is
+specified by Gregory Sanders, Antoine Poinsot and Steven Roose; CSFS by Brandon
+Black and Jeremy Rubin. Source licensing remains MIT except where individual
+files specify otherwise; the imported BIP446 vectors are CC0-1.0. This deployment
+and integration are an independent Paperclip experiment, not an endorsement by
+those authors or upstream projects.

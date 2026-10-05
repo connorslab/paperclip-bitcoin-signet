@@ -6,6 +6,7 @@
 
 #include <test/data/script_tests.json.h>
 #include <test/data/bip446_basics.h>
+#include <test/data/csfs_bip340_vectors.h>
 #include <test/data/bip341_wallet_vectors.json.h>
 
 #include <common/system.h>
@@ -454,6 +455,29 @@ std::string JSONPrettyPrint(const UniValue& univalue)
 } // namespace
 
 BOOST_FIXTURE_TEST_SUITE(script_tests, ScriptTest)
+
+BOOST_AUTO_TEST_CASE(experimental_csfs_bip340_vectors)
+{
+    UniValue vectors;
+    BOOST_REQUIRE(vectors.read(CSFS_BIP340_VECTORS));
+    for (const auto& vector : vectors.getValues()) {
+        const auto pubkey = ParseHex(vector["public key"].get_str());
+        const auto msg = ParseHex(vector["message"].get_str());
+        const auto sig = ParseHex(vector["signature"].get_str());
+        const bool expected = vector["verification result"].get_str() == "TRUE";
+        std::vector<std::vector<unsigned char>> stack{sig, msg, pubkey};
+        ScriptExecutionData data;
+        data.m_validation_weight_left_init = true;
+        data.m_validation_weight_left = 50;
+        ScriptError error;
+        bool ok = EvalScript(stack, CScript() << OP_CHECKSIGFROMSTACK, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, BaseSignatureChecker{}, SigVersion::TAPSCRIPT, data, &error);
+        BOOST_CHECK_MESSAGE(ok == expected, vector["index"].get_str());
+        if (ok) {
+            BOOST_CHECK_EQUAL(data.m_validation_weight_left, 0);
+            BOOST_CHECK(stack == std::vector<std::vector<unsigned char>>{{1}});
+        }
+    }
+}
 
 BOOST_AUTO_TEST_CASE(experimental_csfs)
 {

@@ -620,7 +620,7 @@ public:
     explicit CRegTestParams(const RegTestOptions& opts)
     {
         m_chain_type = ChainType::REGTEST;
-        consensus.experimental_covenants = options.experimental_covenants;
+        consensus.experimental_covenants = opts.experimental_covenants;
         consensus.signet_blocks = false;
         consensus.signet_challenge.clear();
         consensus.nSubsidyHalvingInterval = 150;
