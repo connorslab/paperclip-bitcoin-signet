@@ -535,6 +535,7 @@ public:
         }
 
         m_chain_type = ChainType::SIGNET;
+        consensus.experimental_covenants = options.experimental_covenants;
         consensus.signet_blocks = true;
         consensus.signet_challenge.assign(bin.begin(), bin.end());
         consensus.nSubsidyHalvingInterval = 210000;
@@ -564,9 +565,18 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].min_activation_height = 0; // No activation delay
 
+        if (options.experimental_covenants) {
+            consensus.Blake2bHeight = 1;
+            consensus.Blake2bTargetShift = 32;
+            consensus.RdtsExpiryTime = std::numeric_limits<int64_t>::max();
+            consensus.powLimit = uint256{"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};
+            consensus.fPowNoRetargeting = true;
+        }
+
         // message start is defined as the first 4 bytes of the sha256d of the block script
         HashWriter h{};
         h << consensus.signet_challenge;
+        if (options.experimental_covenants) h << std::string{"Paperclip-XBT-TH446-CSFS348-v1"};
         uint256 hash = h.GetHash();
         std::copy_n(hash.begin(), 4, pchMessageStart.begin());
 
@@ -610,6 +620,7 @@ public:
     explicit CRegTestParams(const RegTestOptions& opts)
     {
         m_chain_type = ChainType::REGTEST;
+        consensus.experimental_covenants = options.experimental_covenants;
         consensus.signet_blocks = false;
         consensus.signet_challenge.clear();
         consensus.nSubsidyHalvingInterval = 150;

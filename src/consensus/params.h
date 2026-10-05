@@ -113,6 +113,7 @@ struct ChainstateRevalidationDeployment {
  * Parameters that influence chain consensus.
  */
 struct Params {
+    bool experimental_covenants{false};
     uint256 hashGenesisBlock;
     int nSubsidyHalvingInterval;
     /**

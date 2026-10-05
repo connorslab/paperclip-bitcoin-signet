@@ -1079,6 +1079,38 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                 }
                 break;
 
+                case OP_TEMPLATEHASH:
+                {
+                    if (sigversion != SigVersion::TAPSCRIPT || !(flags & SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS)) return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+                    uint256 hash;
+                    if (!checker.GetTemplateHash(execdata, hash)) return set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
+                    stack.emplace_back(hash.begin(), hash.end());
+                    break;
+                }
+                case OP_CHECKSIGFROMSTACK:
+                {
+                    if (sigversion != SigVersion::TAPSCRIPT || !(flags & SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS)) return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+                    if (stack.size() < 3) return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                    const auto& sig = stacktop(-3);
+                    const auto& msg = stacktop(-2);
+                    const auto& pubkey = stacktop(-1);
+                    const bool success = !sig.empty();
+                    if (success) {
+                        assert(execdata.m_validation_weight_left_init);
+                        execdata.m_validation_weight_left -= VALIDATION_WEIGHT_PER_SIGOP_PASSED;
+                        if (execdata.m_validation_weight_left < 0) return set_error(serror, SCRIPT_ERR_TAPSCRIPT_VALIDATION_WEIGHT);
+                    }
+                    if (pubkey.empty()) return set_error(serror, SCRIPT_ERR_PUBKEYTYPE);
+                    if (pubkey.size() == 32) {
+                        if (success && sig.size() != 64) return set_error(serror, SCRIPT_ERR_SCHNORR_SIG_SIZE);
+                        if (success && !XOnlyPubKey(pubkey).VerifySchnorrMessage(msg, sig)) return set_error(serror, SCRIPT_ERR_SCHNORR_SIG);
+                    } else if (flags & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_PUBKEYTYPE) {
+                        return set_error(serror, SCRIPT_ERR_DISCOURAGE_UPGRADABLE_PUBKEYTYPE);
+                    }
+                    popstack(stack); popstack(stack); popstack(stack);
+                    stack.push_back(success ? vchTrue : vchFalse);
+                    break;
+                }
                 case OP_CHECKSIG:
                 case OP_CHECKSIGVERIFY:
                 {
@@ -2020,6 +2052,18 @@ bool GenericTransactionSignatureChecker<T>::CheckSequence(const CScriptNum& nSeq
 template bool SignatureHashUnified(uint256&, const CScript&, const CTransaction&, unsigned int, int32_t, SigVersion, const PrecomputedTransactionData&, const ScriptExecutionData*, MissingDataBehavior);
 template bool SignatureHashUnified(uint256&, const CScript&, const CMutableTransaction&, unsigned int, int32_t, SigVersion, const PrecomputedTransactionData&, const ScriptExecutionData*, MissingDataBehavior);
 
+template <class T>
+bool GenericTransactionSignatureChecker<T>::GetTemplateHash(const ScriptExecutionData& execdata, uint256& hash) const
+{
+    if (!txTo || !txdata || !txdata->m_bip341_taproot_ready || !execdata.m_annex_init || nIn >= txTo->vin.size()) return false;
+    HashWriter writer{TaggedHash("TemplateHash")};
+    writer << txTo->version << txTo->nLockTime << txdata->m_sequences_single_hash << txdata->m_outputs_single_hash;
+    writer << uint8_t(execdata.m_annex_present) << uint32_t(nIn);
+    if (execdata.m_annex_present) writer << execdata.m_annex_hash;
+    hash = writer.GetSHA256();
+    return true;
+}
+
 template class GenericTransactionSignatureChecker<CTransaction>;
 template class GenericTransactionSignatureChecker<CMutableTransaction>;
 
@@ -2037,7 +2081,7 @@ static bool ExecuteWitnessScript(const Span<const valtype>& stack_span, const CS
                 return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
             }
             // New opcodes will be listed here. May use a different sigversion to modify existing opcodes.
-            if (IsOpSuccess(opcode)) {
+            if (IsOpSuccess(opcode) && !((flags & SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS) && (opcode == OP_TEMPLATEHASH || opcode == OP_CHECKSIGFROMSTACK))) {
                 if (flags & SCRIPT_VERIFY_DISCOURAGE_OP_SUCCESS) {
                     return set_error(serror, SCRIPT_ERR_DISCOURAGE_OP_SUCCESS);
                 }

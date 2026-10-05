@@ -1545,7 +1545,8 @@ bool MemPoolAccept::PolicyScriptChecks(const ATMPArgs& args, Workspace& ws)
     // what that precomputes depends on SCRIPT_VERIFY_UNIFIED_SIGHASH, so both take
     // that flag from the same place.
     const unsigned int scriptVerifyFlags = PolicyScriptVerifyFlags(args.m_ignore_rejects) |
-        UnifiedSighashMempoolFlag(m_active_chainstate.m_chainman);
+        UnifiedSighashMempoolFlag(m_active_chainstate.m_chainman) |
+        (m_active_chainstate.m_chainman.GetConsensus().experimental_covenants ? uint32_t{SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS} : 0U);
 
     // Check input scripts and signatures.
     // This is done last to help prevent CPU exhaustion denial-of-service attacks.
@@ -2752,6 +2753,8 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex& block_index, const Ch
     if (DeploymentActiveAt(block_index, chainman, Consensus::DEPLOYMENT_BLAKE2B)) {
         flags |= SCRIPT_VERIFY_UNIFIED_SIGHASH;
     }
+
+    if (consensusparams.experimental_covenants) flags |= SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS;
 
     // RDTS (see RdtsActiveAt). Genesis has no parent median-time-past and is
     // never subject to the RDTS rules.

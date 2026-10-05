@@ -235,6 +235,14 @@ bool XOnlyPubKey::VerifySchnorr(const uint256& msg, Span<const unsigned char> si
     return secp256k1_schnorrsig_verify(secp256k1_context_static, sigbytes.data(), msg.begin(), 32, &pubkey);
 }
 
+bool XOnlyPubKey::VerifySchnorrMessage(Span<const unsigned char> msg, Span<const unsigned char> sigbytes) const
+{
+    if (sigbytes.size() != 64) return false;
+    secp256k1_xonly_pubkey pubkey;
+    if (!secp256k1_xonly_pubkey_parse(secp256k1_context_static, &pubkey, m_keydata.data())) return false;
+    return secp256k1_schnorrsig_verify(secp256k1_context_static, sigbytes.data(), msg.data(), msg.size(), &pubkey);
+}
+
 static const HashWriter HASHER_TAPTWEAK{TaggedHash("TapTweak")};
 
 uint256 XOnlyPubKey::ComputeTapTweakHash(const uint256* merkle_root) const

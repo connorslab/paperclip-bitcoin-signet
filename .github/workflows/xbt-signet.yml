@@ -1,0 +1,40 @@
+name: XBT signet build and tests
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - name: Dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y ninja-build libevent-dev libboost-dev libsqlite3-dev ccache
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: xbt-signet-${{ github.run_id }}
+          restore-keys: xbt-signet-
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_GUI=OFF -DBUILD_BENCH=OFF -DENABLE_IPC=OFF -DWITH_BDB=OFF -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Build
+        run: cmake --build build -j 4
+      - name: Unit tests
+        run: ctest --test-dir build --output-on-failure -j 4 -R 'script|sighash|signet|pow|validation'
+      - name: Binaries
+        run: |
+          mkdir -p dist
+          cp build/bin/bitcoind build/bin/bitcoin-cli dist/
+          strip dist/*
+          git rev-parse HEAD > dist/SOURCE_COMMIT
+          cd dist && sha256sum bitcoind bitcoin-cli > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xbt-signet-linux-x86_64
+          path: dist
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-logs
+          path: build/Testing/Temporary

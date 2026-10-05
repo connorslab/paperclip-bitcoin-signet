@@ -175,6 +175,8 @@ enum : uint32_t {
 
     // Constants to point to the highest flag in use. Add new flags above this line.
     //
+    SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS = (1U << 23),
+
     SCRIPT_VERIFY_END_MARKER
 };
 
@@ -342,6 +344,8 @@ public:
          return false;
     }
 
+    virtual bool GetTemplateHash(const ScriptExecutionData&, uint256&) const { return false; }
+
     virtual ~BaseSignatureChecker() = default;
 };
 
@@ -394,6 +398,8 @@ public:
     bool CheckLockTime(const CScriptNum& nLockTime) const override;
     bool CheckSequence(const CScriptNum& nSequence) const override;
 
+    bool GetTemplateHash(const ScriptExecutionData& execdata, uint256& hash) const override;
+
     bool m_require_sighash_all{false};
 };
 
@@ -407,6 +413,7 @@ protected:
 
 public:
     DeferringSignatureChecker(const BaseSignatureChecker& checker) : m_checker(checker) {}
+    bool GetTemplateHash(const ScriptExecutionData& execdata, uint256& hash) const override { return m_checker.GetTemplateHash(execdata, hash); }
 
     bool CheckECDSASignature(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, SigVersion sigversion, SighashRules sighash_rules = SighashRules::LEGACY) const override
     {

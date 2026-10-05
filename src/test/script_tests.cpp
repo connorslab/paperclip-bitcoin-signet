@@ -454,6 +454,34 @@ std::string JSONPrettyPrint(const UniValue& univalue)
 
 BOOST_FIXTURE_TEST_SUITE(script_tests, ScriptTest)
 
+BOOST_AUTO_TEST_CASE(experimental_csfs)
+{
+    CKey key;
+    key.MakeNewKey(true);
+    const XOnlyPubKey pubkey{key.GetPubKey()};
+    const uint256 message = uint256::ONE;
+    std::vector<unsigned char> sig(64);
+    BOOST_REQUIRE(key.SignSchnorr(message, sig, nullptr, uint256{}));
+    auto check = [&](std::vector<unsigned char> signature, std::vector<unsigned char> msg, unsigned int flags, ScriptError expected) {
+        std::vector<std::vector<unsigned char>> stack{signature, msg, {pubkey.begin(), pubkey.end()}};
+        ScriptExecutionData data;
+        data.m_validation_weight_left_init = true;
+        data.m_validation_weight_left = 100;
+        ScriptError error;
+        bool ok = EvalScript(stack, CScript() << OP_CHECKSIGFROMSTACK, flags, BaseSignatureChecker{}, SigVersion::TAPSCRIPT, data, &error);
+        BOOST_CHECK_EQUAL(error, expected);
+        if (expected == SCRIPT_ERR_OK) BOOST_CHECK(ok);
+        else BOOST_CHECK(!ok);
+    };
+    std::vector<unsigned char> msg(message.begin(), message.end());
+    check(sig, msg, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, SCRIPT_ERR_OK);
+    msg[0] ^= 1;
+    check(sig, msg, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, SCRIPT_ERR_SCHNORR_SIG);
+    check({}, msg, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, SCRIPT_ERR_OK);
+    check({1}, msg, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, SCRIPT_ERR_SCHNORR_SIG_SIZE);
+    check(sig, msg, 0, SCRIPT_ERR_BAD_OPCODE);
+}
+
 BOOST_AUTO_TEST_CASE(script_build)
 {
     const KeyData keys;
