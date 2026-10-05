@@ -108,7 +108,9 @@ def generate_psbt(tmpl, reward_spk, *, blocktime=None, poolid=None):
     cbtx.rehash()
 
     block = CBlock()
-    block.nVersion = tmpl["version"]
+    block.m_header_v2 = bool(tmpl["version"] & 0x80000000)
+    block.nVersion = tmpl["version"] & 0x7fffffff
+    block.m_height = tmpl["height"] if block.m_header_v2 else 0
     block.hashPrevBlock = int(tmpl["previousblockhash"], 16)
     block.nTime = tmpl["curtime"] if blocktime is None else blocktime
     if block.nTime < tmpl["mintime"]:
@@ -116,6 +118,8 @@ def generate_psbt(tmpl, reward_spk, *, blocktime=None, poolid=None):
     block.nBits = int(tmpl["bits"], 16)
     block.nNonce = 0
     block.vtx = [cbtx] + [tx_from_hex(t["data"]) for t in tmpl["transactions"]]
+
+    block.m_txcount = len(block.vtx) if block.m_header_v2 else 0
 
     witnonce = 0
     witroot = block.calc_witness_merkle_root()

@@ -22,6 +22,8 @@ jobs:
         run: cmake --build build -j 4
       - name: Unit tests
         run: ctest --test-dir build --output-on-failure -j 4 -R 'script|sighash|signet|pow|validation'
+      - name: Functional covenant tests
+        run: python3 build/test/functional/feature_xbt_covenants.py --tmpdir=/tmp/covenant-test
       - name: Binaries
         run: |
           mkdir -p dist
@@ -37,4 +39,6 @@ jobs:
         if: always()
         with:
           name: test-logs
-          path: build/Testing/Temporary
+          path: |
+            build/Testing/Temporary
+            /tmp/covenant-test
