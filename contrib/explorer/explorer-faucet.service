@@ -1,0 +1,24 @@
+[Unit]
+Description=Paperclip limited Bitcoin signet faucet
+After=xbt-signet.service
+[Service]
+User=xbt-signet
+Group=xbt-signet
+ExecStart=/usr/bin/python3 /opt/paperclip-signet-explorer/faucet.py
+Restart=on-failure
+RestartSec=5
+UMask=0077
+StateDirectory=paperclip-signet-faucet
+StateDirectoryMode=0700
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/paperclip-signet-faucet
+InaccessiblePaths=/var/lib/paperclip-xbt-signet/signer.hex /var/lib/paperclip-xbt-signet/signet/wallets
+RestrictAddressFamilies=AF_INET AF_UNIX
+MemoryMax=100M
+CPUQuota=20%
+TasksMax=8
+[Install]
+WantedBy=multi-user.target

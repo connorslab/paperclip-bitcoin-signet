@@ -233,7 +233,8 @@ class BoundedServer(ThreadingHTTPServer):
 def serve(db_path, port):
     static = Path(__file__).parent / 'static'
     files = {'/': ('index.html', 'text/html'), '/app.js': ('app.js', 'text/javascript'),
-             '/style.css': ('style.css', 'text/css'), '/brand.svg': ('brand.svg', 'image/svg+xml')}
+             '/style.css': ('style.css', 'text/css'), '/brand.svg': ('brand.svg', 'image/svg+xml'),
+             '/faucet.js': ('faucet.js', 'text/javascript')}
 
     class Handler(BaseHTTPRequestHandler):
         server_version = 'PaperclipExplorer'

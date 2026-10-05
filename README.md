@@ -80,9 +80,11 @@ For release binaries replace `build/bin/` with their extracted location. This
 syncs only the test chain. Change the local RPC/P2P ports if already occupied.
 The joining configuration contains the public challenge, never the signing key.
 
-Request test coins from the operator in a repository issue containing only your
-test receiving address. There is no automatic public faucet yet. Never publish
-seeds, keys, RPC cookies or credentials. After receiving at least 0.0011 test XBT:
+Get test coins from the [public faucet](https://node2.paperclippool.xyz/signet/#faucet):
+0.01 test BTC per network/address every 24 hours, with a shared daily cap of
+1 test BTC. See [faucet operations](contrib/explorer/FAUCET.md) for limits and
+recovery details. Never publish seeds, keys, RPC cookies or credentials.
+After receiving at least 0.0011 test BTC:
 
 ```sh
 python3 contrib/signet/covenant_demo.py --cli="$PWD/build/bin/bitcoin-cli" \

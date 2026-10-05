@@ -9,6 +9,14 @@ node2.paperclippool.xyz {
     }
     redir / /signet/ 302
     redir /signet /signet/ 308
+    handle /signet/api/faucet {
+        request_body {
+            max_size 512
+        }
+        reverse_proxy 127.0.0.1:48401 {
+            header_up X-Faucet-Client {remote_host}
+        }
+    }
     handle_path /signet/* {
         reverse_proxy 127.0.0.1:48400
     }

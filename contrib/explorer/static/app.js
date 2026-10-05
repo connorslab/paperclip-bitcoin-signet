@@ -67,13 +67,16 @@ async function render() {
     if (!state) {state = await get('status'); stats(state);}
     let html;
     document.title = 'Paperclip · Bitcoin Signet Explorer';
-    if (!route[0]) html = await home();
+    if (!route[0] || route[0] === 'faucet') html = await home();
     else if (route[0] === 'blocks' && /^\d{1,10}$/.test(route[1])) html = await home(route[1]);
     else if (route[0] === 'block' && /^(\d{1,10}|[0-9a-f]{64})$/.test(route[1]) && (!route[2] || /^\d{1,6}$/.test(route[2]))) html = await blockPage(route[1],Number(route[2] || 0));
     else if (route[0] === 'tx' && /^[0-9a-f]{64}$/.test(route[1])) html = await txPage(route[1]);
     else if (route[0] === 'pending') html = `<div class="section-title"><h2>Unconfirmed transactions</h2><a href="#">← Explorer</a></div><p class="muted">Showing up to 200 transactions from the latest snapshot. Mempool contents can change before confirmation.</p><br>${txTable(await get('mempool'))}`;
     else throw new Error('Page not found. Search for a block height or transaction ID.');
-    if (serial === routeSerial) $('content').innerHTML = html;
+    if (serial === routeSerial) {
+      $('content').innerHTML = html;
+      if (route[0] === 'faucet') $('faucet').scrollIntoView({block: 'start'});
+    }
   } catch (error) {
     if (serial === routeSerial) $('content').innerHTML = `<div class="panel empty">${esc(error.name === 'AbortError' ? 'The explorer is taking longer than expected. Please try again.' : error.message)}<p><a href="#">Back to explorer</a></p></div>`;
   }
