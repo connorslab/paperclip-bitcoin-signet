@@ -1,0 +1,23 @@
+[Unit]
+Description=Paperclip read-only signet explorer
+After=network.target explorer-collector.service
+Wants=explorer-collector.service
+[Service]
+User=xbt-web
+Group=xbt-explorer
+ExecStart=/usr/bin/python3 /opt/paperclip-signet-explorer/explorer.py serve --db=/var/lib/paperclip-signet-explorer/index.sqlite --port=48400
+Restart=always
+RestartSec=5
+UMask=0077
+CPUQuota=25%
+MemoryMax=150M
+TasksMax=32
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/var/lib/paperclip-signet-explorer
+InaccessiblePaths=/var/lib/paperclip-xbt-signet
+RestrictAddressFamilies=AF_INET AF_UNIX
+[Install]
+WantedBy=multi-user.target
