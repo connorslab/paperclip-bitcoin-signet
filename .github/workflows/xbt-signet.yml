@@ -23,7 +23,9 @@ jobs:
       - name: Unit tests
         run: ctest --test-dir build --output-on-failure -j 4 -R 'script|sighash|signet|pow|validation'
       - name: Functional covenant tests
-        run: python3 build/test/functional/feature_xbt_covenants.py --tmpdir=/tmp/covenant-test
+        run: |
+          python3 build/test/functional/feature_xbt_covenants.py --tmpdir=/tmp/covenant-test
+          python3 build/test/functional/feature_xbt_signet.py --tmpdir=/tmp/signet-test
       - name: Binaries
         run: |
           mkdir -p dist
@@ -42,3 +44,4 @@ jobs:
           path: |
             build/Testing/Temporary
             /tmp/covenant-test
+            /tmp/signet-test

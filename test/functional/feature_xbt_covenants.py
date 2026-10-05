@@ -37,7 +37,7 @@ class CovenantTest(BitcoinTestFramework):
             tx = CTransaction()
             tx.version = 2
             tx.vin = [CTxIn(COutPoint(0, 1), nSequence=0xfffffffd)]
-            tx.vout = [CTxOut(99000, wallet.get_scriptPubKey())]
+            tx.vout = [CTxOut(99000, wallet.get_output_script())]
             expected = template_hash(tx)
             script = CScript([CScriptOp(0xce), pubkey, CScriptOp(0xcc)]) if combined else CScript([CScriptOp(0xce), expected, OP_EQUAL])
             tap = taproot_construct(pubkey, [('test', script)])

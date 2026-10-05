@@ -5,6 +5,7 @@
 #include <bitcoin-build-config.h> // IWYU pragma: keep
 
 #include <test/data/script_tests.json.h>
+#include <test/data/bip446_basics.h>
 #include <test/data/bip341_wallet_vectors.json.h>
 
 #include <common/system.h>
@@ -2149,6 +2150,24 @@ static std::vector<unsigned int> AllConsensusFlags()
 
 /** Precomputed list of all valid combinations of consensus-relevant script validation flags. */
 static const std::vector<unsigned int> ALL_CONSENSUS_FLAGS = AllConsensusFlags();
+
+BOOST_AUTO_TEST_CASE(experimental_templatehash_bip446_vectors)
+{
+    UniValue vectors;
+    BOOST_REQUIRE(vectors.read(BIP446_BASICS));
+    for (const auto& vector : vectors.getValues()) {
+        const CTransaction tx{TxFromHex(vector["spending_tx"].get_str())};
+        auto prevouts = TxOutsFromJSON(vector["spent_outputs"]);
+        const auto index = vector["input_index"].getInt<unsigned int>();
+        PrecomputedTransactionData data;
+        data.Init(tx, std::vector<CTxOut>{prevouts}, true);
+        TransactionSignatureChecker checker(&tx, index, prevouts[index].nValue, data, MissingDataBehavior::ASSERT_FAIL);
+        ScriptError error;
+        const auto flags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_WITNESS | SCRIPT_VERIFY_TAPROOT | SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS;
+        bool result = VerifyScript(tx.vin[index].scriptSig, prevouts[index].scriptPubKey, &tx.vin[index].scriptWitness, flags, checker, &error);
+        BOOST_CHECK_MESSAGE(result == vector["valid"].get_bool(), vector["comment"].get_str());
+    }
+}
 
 static void AssetTest(const UniValue& test, SignatureCache& signature_cache)
 {
