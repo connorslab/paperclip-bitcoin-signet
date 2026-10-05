@@ -2180,7 +2180,9 @@ BOOST_AUTO_TEST_CASE(experimental_templatehash_bip446_vectors)
     UniValue vectors;
     BOOST_REQUIRE(vectors.read(BIP446_BASICS));
     for (const auto& vector : vectors.getValues()) {
-        const CTransaction tx{TxFromHex(vector["spending_tx"].get_str())};
+        CMutableTransaction mutable_tx;
+        SpanReader{ParseHex(vector["spending_tx"].get_str())} >> TX_WITH_WITNESS(mutable_tx);
+        const CTransaction tx{mutable_tx};
         auto prevouts = TxOutsFromJSON(vector["spent_outputs"]);
         const auto index = vector["input_index"].getInt<unsigned int>();
         PrecomputedTransactionData data;

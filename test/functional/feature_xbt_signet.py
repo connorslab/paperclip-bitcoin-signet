@@ -3,10 +3,10 @@
 # Distributed under the MIT software license, see COPYING.
 """Signed Blake2b custom signet, invalid signer rejection and restart."""
 import importlib.util
+import copy
 from pathlib import Path
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.key import ECKey
-from test_framework.messages import CBlock
 from test_framework.script import CScript, OP_CHECKSIG
 from test_framework.wallet import MiniWallet
 from test_framework.util import assert_equal
@@ -20,7 +20,7 @@ class SignetTest(BitcoinTestFramework):
         key = ECKey()
         key.set(self.secret, compressed=True)
         challenge = CScript([key.get_pubkey().get_bytes(), OP_CHECKSIG]).hex()
-        self.extra_args = [['-xbtcovtest', '-signetchallenge=' + challenge, '-prune=550', '-minimumchainwork=0']] * 2
+        self.extra_args = [['-xbtcovtest', '-signetchallenge=' + challenge, '-minimumchainwork=0']] * 2
 
     def run_test(self):
         path = Path(self.config['environment']['SRCDIR']) / 'contrib/signet/xbt_miner.py'
@@ -33,7 +33,7 @@ class SignetTest(BitcoinTestFramework):
             template = node.getblocktemplate({'rules': ['signet', 'segwit', 'blake2b']})
             block = module.signed_block(template, wallet.get_output_script(), self.secret)
             assert block.m_header_v2
-            bad = CBlock(block)
+            bad = copy.deepcopy(block)
             script = bytearray(bad.vtx[0].vout[-1].scriptPubKey)
             script[-3] ^= 1
             bad.vtx[0].vout[-1].scriptPubKey = bytes(script)
