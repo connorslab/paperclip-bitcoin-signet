@@ -1,4 +1,4 @@
-name: XBT signet build and tests
+name: Bitcoin signet build and tests
 on:
   workflow_dispatch:
 permissions:
@@ -14,8 +14,8 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ccache
-          key: xbt-signet-${{ github.run_id }}
-          restore-keys: xbt-signet-
+          key: bitcoin-signet-${{ github.run_id }}
+          restore-keys: bitcoin-signet-
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_GUI=OFF -DBUILD_BENCH=OFF -DENABLE_IPC=OFF -DWITH_BDB=OFF -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
       - name: Build
@@ -24,9 +24,9 @@ jobs:
         run: ctest --test-dir build --output-on-failure -j 4 -R 'script|sighash|signet|pow|validation'
       - name: Functional covenant tests
         run: |
-          python3 build/test/functional/feature_xbt_covenants.py --tmpdir=/tmp/covenant-test
+          python3 build/test/functional/feature_bitcoin_covenants.py --tmpdir=/tmp/covenant-test
           python3 test/functional/mempool_csfs_policy.py --configfile=build/test/config.ini --tmpdir=/tmp/csfs-policy-test
-          python3 build/test/functional/feature_xbt_signet.py --tmpdir=/tmp/signet-test
+          python3 build/test/functional/feature_bitcoin_signet.py --tmpdir=/tmp/signet-test
       - name: Binaries
         run: |
           mkdir -p dist
@@ -36,7 +36,7 @@ jobs:
           cd dist && sha256sum bitcoind bitcoin-cli > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
-          name: xbt-signet-linux-x86_64
+          name: bitcoin-signet-linux-x86_64
           path: dist
       - uses: actions/upload-artifact@v4
         if: always()

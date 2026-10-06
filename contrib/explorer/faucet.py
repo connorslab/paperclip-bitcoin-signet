@@ -27,7 +27,7 @@ class Rejected(Exception):
 
 class RPC:
     def __call__(self, method, params=None):
-        cookie = Path('/var/lib/paperclip-xbt-signet/signet/.cookie').read_text().strip()
+        cookie = Path('/var/lib/paperclip-bitcoin-signet/signet/.cookie').read_text().strip()
         auth = base64.b64encode(cookie.encode()).decode()
         req = Request('http://127.0.0.1:48332/wallet/' + WALLET,
                       json.dumps({'jsonrpc': '2.0', 'id': 'faucet', 'method': method,

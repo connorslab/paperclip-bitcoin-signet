@@ -1,9 +1,9 @@
 [Unit]
 Description=Paperclip limited Bitcoin signet faucet
-After=xbt-signet.service
+After=bitcoin-signet.service
 [Service]
-User=xbt-signet
-Group=xbt-signet
+User=bitcoin-signet
+Group=bitcoin-signet
 ExecStart=/usr/bin/python3 /opt/paperclip-signet-explorer/faucet.py
 Restart=on-failure
 RestartSec=5
@@ -15,7 +15,7 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=/var/lib/paperclip-signet-faucet
-InaccessiblePaths=/var/lib/paperclip-xbt-signet/signer.hex /var/lib/paperclip-xbt-signet/signet/wallets
+InaccessiblePaths=/var/lib/paperclip-bitcoin-signet/signer.hex /var/lib/paperclip-bitcoin-signet/signet/wallets
 RestrictAddressFamilies=AF_INET AF_UNIX
 MemoryMax=100M
 CPUQuota=20%

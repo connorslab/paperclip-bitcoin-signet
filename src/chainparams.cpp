@@ -24,6 +24,16 @@
 
 using util::SplitString;
 
+static bool ExperimentalCovenantsEnabled(const ArgsManager& args)
+{
+    const bool legacy{args.GetBoolArg("-xbtcovtest", false)};
+    const bool enabled{args.GetBoolArg("-btccovtest", legacy)};
+    if (args.IsArgSet("-btccovtest") && args.IsArgSet("-xbtcovtest") && enabled != legacy) {
+        throw std::runtime_error("Conflicting covenant activation options");
+    }
+    return enabled;
+}
+
 void ReadSigNetArgs(const ArgsManager& args, CChainParams::SigNetOptions& options)
 {
     if (!args.GetArgs("-signetseednode").empty()) {
@@ -40,8 +50,8 @@ void ReadSigNetArgs(const ArgsManager& args, CChainParams::SigNetOptions& option
         }
         options.challenge.emplace(*val);
     }
-    options.experimental_covenants = args.GetBoolArg("-xbtcovtest", false);
-    if (options.experimental_covenants && (!options.challenge || options.challenge->empty())) throw std::runtime_error("-xbtcovtest requires a nonempty custom -signetchallenge");
+    options.experimental_covenants = ExperimentalCovenantsEnabled(args);
+    if (options.experimental_covenants && (!options.challenge || options.challenge->empty())) throw std::runtime_error("-btccovtest requires a nonempty custom -signetchallenge");
     if (const auto signetblocktime{args.GetIntArg("-signetblocktime")}) {
         if (!args.IsArgSet("-signetchallenge")) {
             throw std::runtime_error("-signetblocktime cannot be set without -signetchallenge");
@@ -55,7 +65,7 @@ void ReadSigNetArgs(const ArgsManager& args, CChainParams::SigNetOptions& option
 
 void ReadRegTestArgs(const ArgsManager& args, CChainParams::RegTestOptions& options)
 {
-    options.experimental_covenants = args.GetBoolArg("-xbtcovtest", false);
+    options.experimental_covenants = ExperimentalCovenantsEnabled(args);
     if (auto value = args.GetBoolArg("-fastprune")) options.fastprune = *value;
     if (HasTestOption(args, "bip94")) options.enforce_bip94 = true;
 
@@ -216,7 +226,7 @@ std::unique_ptr<const CChainParams> CreateChainParams(const ArgsManager& args, c
 
 void SelectParams(const ChainType chain)
 {
-    if (gArgs.GetBoolArg("-xbtcovtest", false) && chain != ChainType::SIGNET && chain != ChainType::REGTEST) throw std::runtime_error("-xbtcovtest is restricted to custom signet and regtest");
+    if (ExperimentalCovenantsEnabled(gArgs) && chain != ChainType::SIGNET && chain != ChainType::REGTEST) throw std::runtime_error("-btccovtest is restricted to custom signet and regtest");
     SelectBaseParams(chain);
     globalChainParams = CreateChainParams(gArgs, chain);
 }

@@ -1,11 +1,11 @@
 [Unit]
-Description=Paperclip experimental XBT covenant signet
+Description=Paperclip experimental Bitcoin covenant signet
 After=network-online.target
 Wants=network-online.target
 [Service]
-User=xbt-signet
-Group=xbt-signet
-ExecStart=/opt/paperclip-xbt-signet/bin/bitcoind -datadir=/var/lib/paperclip-xbt-signet -printtoconsole
+User=bitcoin-signet
+Group=bitcoin-signet
+ExecStart=/opt/paperclip-bitcoin-signet/bin/bitcoind -datadir=/var/lib/paperclip-bitcoin-signet -printtoconsole
 Restart=on-failure
 RestartSec=10
 TimeoutStopSec=120
@@ -18,6 +18,6 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/paperclip-xbt-signet
+ReadWritePaths=/var/lib/paperclip-bitcoin-signet
 [Install]
 WantedBy=multi-user.target

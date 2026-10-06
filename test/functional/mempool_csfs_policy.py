@@ -6,7 +6,7 @@
 
 import hashlib
 
-from feature_xbt_covenants import template_hash
+from feature_bitcoin_covenants import template_hash
 from test_framework.key import ORDER, TaggedHash, compute_xonly_pubkey, secp256k1
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxInWitness, CTxOut
 from test_framework.script import CScript, CScriptOp, OP_NOT, OP_SHA256, OP_VERIFY, taproot_construct
@@ -34,7 +34,7 @@ class CSFSPolicyTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.setup_clean_chain = True
-        self.base_args = ['-xbtcovtest', '-testactivationheight=blake2b@1', '-rdtsexpiry=2147483647']
+        self.base_args = ['-btccovtest', '-testactivationheight=blake2b@1', '-rdtsexpiry=2147483647']
         # Omit the option on the capped node to test the default, not an override.
         self.extra_args = [self.base_args + ['-maxcsfsmsgsize=-1'], self.base_args]
 

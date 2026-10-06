@@ -1,0 +1,21 @@
+[Unit]
+Description=Paperclip test-only signet block signer
+After=bitcoin-signet.service
+Requires=bitcoin-signet.service
+[Service]
+User=bitcoin-signet
+Group=bitcoin-signet
+ExecStart=/usr/bin/python3 /opt/paperclip-bitcoin-signet/source/contrib/signet/bitcoin_miner.py --cli=/opt/paperclip-bitcoin-signet/bin/bitcoin-cli --datadir=/var/lib/paperclip-bitcoin-signet --key-file=/var/lib/paperclip-bitcoin-signet/signer.hex --reward-script-file=/var/lib/paperclip-bitcoin-signet/reward-script.hex --interval=60
+Restart=on-failure
+RestartSec=15
+Nice=15
+MemoryMax=100M
+CPUQuota=25%
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/paperclip-bitcoin-signet
+[Install]
+WantedBy=multi-user.target

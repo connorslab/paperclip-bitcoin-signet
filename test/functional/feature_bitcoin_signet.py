@@ -20,14 +20,23 @@ class SignetTest(BitcoinTestFramework):
         key = ECKey()
         key.set(self.secret, compressed=True)
         challenge = CScript([key.get_pubkey().get_bytes(), OP_CHECKSIG]).hex()
-        self.extra_args = [['-xbtcovtest', '-signetchallenge=' + challenge, '-minimumchainwork=0']] * 2
+        common = ['-signetchallenge=' + challenge, '-minimumchainwork=0']
+        # Existing configurations and the renamed option must use the same network.
+        self.extra_args = [common + ['-btccovtest'], common + ['-xbtcovtest']]
 
     def run_test(self):
-        path = Path(self.config['environment']['SRCDIR']) / 'contrib/signet/xbt_miner.py'
-        spec = importlib.util.spec_from_file_location('xbt_miner', path)
+        path = Path(self.config['environment']['SRCDIR']) / 'contrib/signet/bitcoin_miner.py'
+        spec = importlib.util.spec_from_file_location('bitcoin_miner', path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         node = self.nodes[0]
+        self.stop_node(0)
+        node.assert_start_raises_init_error(
+            extra_args=self.extra_args[0] + ['-xbtcovtest=0'],
+            expected_msg='Error: Conflicting covenant activation options',
+        )
+        self.start_node(0)
+        self.connect_nodes(0, 1)
         wallet = MiniWallet(node)
         for height in range(1, 4):
             template = node.getblocktemplate({'rules': ['signet', 'segwit', 'blake2b']})

@@ -576,6 +576,7 @@ public:
         // message start is defined as the first 4 bytes of the sha256d of the block script
         HashWriter h{};
         h << consensus.signet_challenge;
+        // Frozen wire discriminator: changing these bytes would split existing peers.
         if (options.experimental_covenants) h << std::string{"Paperclip-XBT-TH446-CSFS348-v1"};
         uint256 hash = h.GetHash();
         std::copy_n(hash.begin(), 4, pchMessageStart.begin());

@@ -1,10 +1,10 @@
-# Paperclip XBT covenant signet
+# Paperclip Bitcoin covenant signet
 
 **Experimental software. Test coins only, with no monetary value. Not a mainnet upgrade.**
 
 This repository starts from Bitcoin Knots `v29.4.2.knots20260508`
 (`58398baf33e588779685ead478e6397bb28ed3d6`) and adds an isolated
-Blake2b/XBT signet for testing two draft proposals:
+Bitcoin signet for testing two draft proposals:
 
 - [BIP446 TEMPLATEHASH](https://bips.dev/446/), opcode `0xce`.
 - [BIP348 CHECKSIGFROMSTACK](https://bips.dev/348/), opcode `0xcc`.
@@ -12,9 +12,21 @@ Blake2b/XBT signet for testing two draft proposals:
 The network is live at `node2.paperclippool.xyz:48333`. See
 [validation results](doc/paperclip-signet-validation.md) for the tested scope.
 
+Repository wording, filenames and new-install examples use Bitcoin/BTC.
+The previous covenant option remains accepted as a hidden compatibility alias,
+and the established network discriminator is unchanged so existing peers stay
+on the same signet. Upstream addresses, encoded test data and contributor names
+are preserved verbatim.
+
+When upgrading an existing installation, retain its current data directory,
+service account and service names. The service examples in this repository use
+Bitcoin names for fresh installations; do not replace existing units without
+adapting their paths and permissions. This source update does not migrate live
+services or start a new chain.
+
 ## Rules and scope
 
-`-xbtcovtest` enables both opcodes only on custom signet or regtest. It is rejected
+`-btccovtest` enables both opcodes only on custom signet or regtest. It is rejected
 on mainnet and other networks. Without that option, their existing OP_SUCCESS
 behavior and policy restrictions remain unchanged. Both instructions are defined
 only in tapscript. TEMPLATEHASH uses cached BIP341 components and the BIP446
@@ -31,7 +43,7 @@ RDTS is active. This experiment deliberately makes two exceptions: activated
 TEMPLATEHASH/CSFS opcodes, and the verified BIP325 signature envelope in the
 coinbase witness commitment (bounded to 160 bytes). Other output-size limits,
 annex restrictions, control-block limits and conditional-opcode restrictions remain.
-This is **not** consensus-compatible with unmodified XBT nodes.
+This is **not** consensus-compatible with unmodified Bitcoin nodes.
 
 Upstream unified-sighash support is retained without changing its selection rules.
 CSFS verifies application messages: it does not automatically apply unified
@@ -61,7 +73,7 @@ filter. See [policy details and tests](doc/csfs-message-policy.md).
 
 ### Build from source
 
-Clone `https://github.com/connorslab/paperclip-xbt-signet` and run the commands
+Clone `https://github.com/connorslab/paperclip-bitcoin-signet` and run the commands
 from its root. The example scripts and joining configuration are in this repo.
 
 On Ubuntu, install `cmake ninja-build g++ libevent-dev libboost-dev libsqlite3-dev`.
@@ -71,8 +83,8 @@ cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_GUI=OFF -DBUILD_BENCH=OFF -DENABLE_IPC=OFF -DWITH_BDB=OFF
 cmake --build build -j 4
 ctest --test-dir build --output-on-failure -j 4 -R 'script|sighash|signet|pow|validation'
-python3 build/test/functional/feature_xbt_covenants.py
-python3 build/test/functional/feature_xbt_signet.py
+python3 build/test/functional/feature_bitcoin_covenants.py
+python3 build/test/functional/feature_bitcoin_signet.py
 ```
 
 The functional tests use disposable local chains and no real funds. The covenant
@@ -87,12 +99,12 @@ Release binaries target **Ubuntu 26.04 x86_64**. Runtime packages are
 Check release SHA256SUMS. For other systems, build from source.
 
 ```sh
-mkdir -m 700 "$HOME/.paperclip-xbt-signet"
-cp contrib/signet/paperclip/join.conf "$HOME/.paperclip-xbt-signet/bitcoin.conf"
-build/bin/bitcoind -datadir="$HOME/.paperclip-xbt-signet" -daemonwait
-build/bin/bitcoin-cli -datadir="$HOME/.paperclip-xbt-signet" getblockchaininfo
-build/bin/bitcoin-cli -datadir="$HOME/.paperclip-xbt-signet" createwallet test
-build/bin/bitcoin-cli -datadir="$HOME/.paperclip-xbt-signet" -rpcwallet=test getnewaddress
+mkdir -m 700 "$HOME/.paperclip-bitcoin-signet"
+cp contrib/signet/paperclip/join.conf "$HOME/.paperclip-bitcoin-signet/bitcoin.conf"
+build/bin/bitcoind -datadir="$HOME/.paperclip-bitcoin-signet" -daemonwait
+build/bin/bitcoin-cli -datadir="$HOME/.paperclip-bitcoin-signet" getblockchaininfo
+build/bin/bitcoin-cli -datadir="$HOME/.paperclip-bitcoin-signet" createwallet test
+build/bin/bitcoin-cli -datadir="$HOME/.paperclip-bitcoin-signet" -rpcwallet=test getnewaddress
 ```
 
 For release binaries replace `build/bin/` with their extracted location. This
@@ -107,7 +119,7 @@ After receiving at least 0.0011 test BTC:
 
 ```sh
 python3 contrib/signet/covenant_demo.py --cli="$PWD/build/bin/bitcoin-cli" \
-  --datadir="$HOME/.paperclip-xbt-signet" --wallet=test
+  --datadir="$HOME/.paperclip-bitcoin-signet" --wallet=test
 ```
 
 This funds and spends a TEMPLATEHASH + CSFS output, and checks rejection of an

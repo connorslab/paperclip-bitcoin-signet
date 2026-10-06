@@ -1,11 +1,11 @@
 [Unit]
 Description=Paperclip signet public-data collector
-After=xbt-signet.service
-Wants=xbt-signet.service
+After=bitcoin-signet.service
+Wants=bitcoin-signet.service
 [Service]
-User=xbt-signet
-Group=xbt-explorer
-ExecStart=/usr/bin/python3 /opt/paperclip-signet-explorer/explorer.py collect --db=/var/lib/paperclip-signet-explorer/index.sqlite --cookie=/var/lib/paperclip-xbt-signet/signet/.cookie
+User=bitcoin-signet
+Group=bitcoin-explorer
+ExecStart=/usr/bin/python3 /opt/paperclip-signet-explorer/explorer.py collect --db=/var/lib/paperclip-signet-explorer/index.sqlite --cookie=/var/lib/paperclip-bitcoin-signet/signet/.cookie
 Restart=always
 RestartSec=10
 UMask=0027
@@ -17,7 +17,7 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=/var/lib/paperclip-signet-explorer
-InaccessiblePaths=/var/lib/paperclip-xbt-signet/signer.hex /var/lib/paperclip-xbt-signet/faucet-recovery.dat /var/lib/paperclip-xbt-signet/signet/wallets
+InaccessiblePaths=/var/lib/paperclip-bitcoin-signet/signer.hex /var/lib/paperclip-bitcoin-signet/faucet-recovery.dat /var/lib/paperclip-bitcoin-signet/signet/wallets
 RestrictAddressFamilies=AF_INET AF_UNIX
 [Install]
 WantedBy=multi-user.target

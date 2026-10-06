@@ -25,7 +25,7 @@ class CovenantTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
         self.setup_clean_chain = True
-        self.extra_args = [['-xbtcovtest', '-testactivationheight=blake2b@1', '-rdtsexpiry=2147483647']]
+        self.extra_args = [['-btccovtest', '-testactivationheight=blake2b@1', '-rdtsexpiry=2147483647']]
 
     def run_test(self):
         node = self.nodes[0]

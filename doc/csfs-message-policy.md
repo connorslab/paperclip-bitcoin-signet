@@ -2,7 +2,7 @@
 
 `-maxcsfsmsgsize=<n>` limits the number of message bytes consumed by each
 executed experimental `OP_CHECKSIGFROMSTACK`. It applies only when CSFS is
-active through `-xbtcovtest` on the experimental signet or private regtest.
+active through `-btccovtest` on the experimental signet or private regtest.
 The default cap is 32 bytes. It does not activate opcodes on any other network.
 
 ```ini
@@ -70,7 +70,7 @@ Build the node and unit tests, then run from the source root:
 ```sh
 build/bin/test_bitcoin --run_test=script_tests
 python3 test/functional/mempool_csfs_policy.py --configfile=build/test/config.ini
-python3 test/functional/feature_xbt_covenants.py --configfile=build/test/config.ini
+python3 test/functional/feature_bitcoin_covenants.py --configfile=build/test/config.ini
 ```
 
 The new private-regtest test covers witness and script message boundaries,
@@ -102,3 +102,9 @@ are native local test results, not a claim of a completed GitHub CI run.
 The default was subsequently changed to 32 bytes. The native Release rebuild,
 two-node policy test (with the capped node's option omitted), and existing
 covenant functional test all passed again. Explicit `-1` opt-out remains tested.
+
+After adopting Bitcoin filenames and the `-btccovtest` option, the native
+Release rebuild and all three covenant, signed-signet and CSFS policy tests
+passed again. The signed-signet test confirms that the new option and hidden
+legacy alias synchronize on the same network, and rejects conflicting settings.
+Existing chain data and network identity remain unchanged.

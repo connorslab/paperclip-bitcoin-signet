@@ -51,13 +51,13 @@ proof of nonpayment. Do not blindly refund, resend, or clear the row.
 Use the existing private SSH access. Signet CLI prefix:
 
 ```sh
-runuser -u xbt-signet -- /opt/paperclip-xbt-signet/bin/bitcoin-cli \
-  -datadir=/var/lib/paperclip-xbt-signet -rpcwallet=public-faucet getbalances
+runuser -u bitcoin-signet -- /opt/paperclip-bitcoin-signet/bin/bitcoin-cli \
+  -datadir=/var/lib/paperclip-bitcoin-signet -rpcwallet=public-faucet getbalances
 ```
 
 Replace `getbalances` with `getnewaddress` for a refill destination. Fund it
 only from this signet's test coins. Never import production private keys.
-Use `backupwallet` to an xbt-signet-writable private location, then move the
+Use `backupwallet` to an bitcoin-signet-writable private location, then move the
 backup into root-only recovery storage. To pause the faucet:
 `systemctl stop explorer-faucet`; neither mining nor the explorer needs to stop.
 Start it again with `systemctl start explorer-faucet` after troubleshooting.
