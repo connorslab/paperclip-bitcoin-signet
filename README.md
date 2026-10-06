@@ -42,6 +42,25 @@ implementation.
 
 ## Build
 
+### Optional CSFS message policy
+
+Nodes running this experimental branch can set `maxcsfsmsgsize=32` in
+`bitcoin.conf` (or use `-maxcsfsmsgsize=32`) to cap each executed CSFS message
+at 32 bytes for mempool admission, relay and local block templates. Restart
+the node after changing the setting. The default is `-1`, which disables
+this extra cap. `0` permits only empty messages; valid settings are `-1`
+through `520`. Existing RDTS and standardness limits still apply.
+
+This is **local policy, not consensus**: otherwise-valid blocks containing
+larger messages remain valid. The limit covers the actual message consumed
+by CSFS, whether witness-supplied, script-supplied or computed. It does not
+cap the 64-byte signature, total transaction data, number of CSFS calls, or
+preimages hashed down before verification. A 32-byte limit permits the
+current TEMPLATEHASH/CSFS covenant design, but is not a general data-storage
+filter. See [policy details and tests](doc/csfs-message-policy.md).
+
+### Build from source
+
 Clone `https://github.com/connorslab/paperclip-xbt-signet` and run the commands
 from its root. The example scripts and joining configuration are in this repo.
 

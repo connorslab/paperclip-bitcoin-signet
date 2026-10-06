@@ -1093,6 +1093,7 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                     if (stack.size() < 3) return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
                     const auto& sig = stacktop(-3);
                     const auto& msg = stacktop(-2);
+                    if (!checker.CheckCSFSMessageSize(msg.size())) return set_error(serror, SCRIPT_ERR_CSFS_MESSAGE_SIZE);
                     const auto& pubkey = stacktop(-1);
                     const bool success = !sig.empty();
                     if (success) {

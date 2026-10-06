@@ -33,6 +33,7 @@
 #include <vector>
 
 unsigned int g_script_size_policy_limit{DEFAULT_SCRIPT_SIZE_POLICY_LIMIT};
+std::optional<unsigned int> g_csfs_message_size_limit;
 
 CAmount GetDustThreshold(const CTxOut& txout, const CFeeRate& dustRelayFeeIn)
 {

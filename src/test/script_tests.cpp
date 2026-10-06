@@ -102,6 +102,7 @@ static ScriptErrorDesc script_errors[]={
     {SCRIPT_ERR_WITNESS_PUBKEYTYPE, "WITNESS_PUBKEYTYPE"},
     {SCRIPT_ERR_OP_CODESEPARATOR, "OP_CODESEPARATOR"},
     {SCRIPT_ERR_SIG_FINDANDDELETE, "SIG_FINDANDDELETE"},
+    {SCRIPT_ERR_CSFS_MESSAGE_SIZE, "CSFS_MESSAGE_SIZE"},
 };
 
 static std::string FormatScriptError(ScriptError_t err)
@@ -505,6 +506,32 @@ BOOST_AUTO_TEST_CASE(experimental_csfs)
     check({}, msg, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, SCRIPT_ERR_OK);
     check({1}, msg, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, SCRIPT_ERR_SCHNORR_SIG_SIZE);
     check(sig, msg, 0, SCRIPT_ERR_BAD_OPCODE);
+}
+
+BOOST_AUTO_TEST_CASE(experimental_csfs_message_policy)
+{
+    UniValue vectors;
+    BOOST_REQUIRE(vectors.read(CSFS_BIP340_VECTORS));
+    const BaseSignatureChecker consensus_checker;
+    for (const auto& vector : vectors.getValues()) {
+        if (vector["verification result"].get_str() != "TRUE") continue;
+        const auto pubkey = ParseHex(vector["public key"].get_str());
+        const auto msg = ParseHex(vector["message"].get_str());
+        const auto sig = ParseHex(vector["signature"].get_str());
+        for (const size_t limit : {size_t{0}, size_t{32}, size_t{520}}) {
+            CSFSMessageSizePolicyChecker policy_checker(consensus_checker, limit);
+            // Wrapping must not lose the policy hook.
+            DeferringSignatureChecker wrapper(static_cast<const BaseSignatureChecker&>(policy_checker));
+            std::vector<std::vector<unsigned char>> stack{sig, msg, pubkey};
+            ScriptExecutionData data;
+            data.m_validation_weight_left_init = true;
+            data.m_validation_weight_left = 50;
+            ScriptError error;
+            const bool ok = EvalScript(stack, CScript() << OP_CHECKSIGFROMSTACK, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, wrapper, SigVersion::TAPSCRIPT, data, &error);
+            BOOST_CHECK_EQUAL(ok, msg.size() <= limit);
+            BOOST_CHECK_EQUAL(error, msg.size() <= limit ? SCRIPT_ERR_OK : SCRIPT_ERR_CSFS_MESSAGE_SIZE);
+        }
+    }
 }
 
 BOOST_AUTO_TEST_CASE(script_build)

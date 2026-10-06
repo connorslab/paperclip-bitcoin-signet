@@ -6,7 +6,10 @@
 #ifndef BITCOIN_POLICY_SETTINGS_H
 #define BITCOIN_POLICY_SETTINGS_H
 
+#include <optional>
+
 extern unsigned int g_script_size_policy_limit;
+extern std::optional<unsigned int> g_csfs_message_size_limit;
 extern unsigned int nBytesPerSigOp;
 extern unsigned int nBytesPerSigOpStrict;
 extern unsigned int g_weight_per_data_byte;

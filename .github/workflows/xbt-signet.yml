@@ -25,6 +25,7 @@ jobs:
       - name: Functional covenant tests
         run: |
           python3 build/test/functional/feature_xbt_covenants.py --tmpdir=/tmp/covenant-test
+          python3 test/functional/mempool_csfs_policy.py --configfile=build/test/config.ini --tmpdir=/tmp/csfs-policy-test
           python3 build/test/functional/feature_xbt_signet.py --tmpdir=/tmp/signet-test
       - name: Binaries
         run: |
@@ -44,4 +45,5 @@ jobs:
           path: |
             build/Testing/Temporary
             /tmp/covenant-test
+            /tmp/csfs-policy-test
             /tmp/signet-test

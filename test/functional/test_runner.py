@@ -345,6 +345,7 @@ BASE_SCRIPTS = [
     'mining_mainnet.py',
     'feature_signet.py',
     'feature_xbt_covenants.py',
+    'mempool_csfs_policy.py',
     'feature_xbt_signet.py',
     'p2p_mutated_blocks.py',
     'wallet_implicitsegwit.py --legacy-wallet',
