@@ -2,7 +2,7 @@
 # Copyright (c) 2026 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""An opt-in CSFS message cap is local policy, never a block validity rule."""
+"""A default-enabled CSFS message cap is local policy, never a block validity rule."""
 
 import hashlib
 
@@ -35,7 +35,8 @@ class CSFSPolicyTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.setup_clean_chain = True
         self.base_args = ['-xbtcovtest', '-testactivationheight=blake2b@1', '-rdtsexpiry=2147483647']
-        self.extra_args = [self.base_args, self.base_args + ['-maxcsfsmsgsize=32']]
+        # Omit the option on the capped node to test the default, not an override.
+        self.extra_args = [self.base_args + ['-maxcsfsmsgsize=-1'], self.base_args]
 
     def make_spend(self, message, mode='witness'):
         tx = CTransaction()

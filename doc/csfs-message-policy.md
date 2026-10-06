@@ -3,7 +3,7 @@
 `-maxcsfsmsgsize=<n>` limits the number of message bytes consumed by each
 executed experimental `OP_CHECKSIGFROMSTACK`. It applies only when CSFS is
 active through `-xbtcovtest` on the experimental signet or private regtest.
-It does not activate opcodes on any other network.
+The default cap is 32 bytes. It does not activate opcodes on any other network.
 
 ```ini
 # bitcoin.conf; restart the node to apply
@@ -12,9 +12,9 @@ maxcsfsmsgsize=32
 
 | Value | Meaning |
 | --- | --- |
-| `-1` (default) | No additional CSFS message cap |
+| `-1` | No additional CSFS message cap |
 | `0` | Only empty messages |
-| `32` | Messages up to 32 bytes, including TEMPLATEHASH results |
+| `32` (default) | Messages up to 32 bytes, including TEMPLATEHASH results |
 | `1` through `520` | Explicit maximum message length in bytes |
 
 Malformed values and values outside this range fail startup. A limit does
@@ -40,7 +40,7 @@ when the cap is enabled. It uses the existing transaction signature checker
 and signature cache but never caches its policy result in the consensus
 script-execution cache. A previous successful block or script-cache entry
 cannot bypass the cap. This adds script execution work for capped nodes;
-there is no additional pass with the default disabled setting.
+there is no additional pass when explicitly disabled with `-maxcsfsmsgsize=-1`.
 
 ## Scope and tradeoffs
 
@@ -98,3 +98,7 @@ checker wrappers preserve it. Tests use disposable local chains only.
 
 No live signet or production service was restarted or reconfigured. These
 are native local test results, not a claim of a completed GitHub CI run.
+
+The default was subsequently changed to 32 bytes. The native Release rebuild,
+two-node policy test (with the capped node's option omitted), and existing
+covenant functional test all passed again. Explicit `-1` opt-out remains tested.

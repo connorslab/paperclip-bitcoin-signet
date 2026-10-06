@@ -9,6 +9,7 @@
 #include <optional>
 
 extern unsigned int g_script_size_policy_limit;
+inline constexpr unsigned int DEFAULT_CSFS_MESSAGE_SIZE_LIMIT{32};
 extern std::optional<unsigned int> g_csfs_message_size_limit;
 extern unsigned int nBytesPerSigOp;
 extern unsigned int nBytesPerSigOpStrict;

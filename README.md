@@ -42,13 +42,13 @@ implementation.
 
 ## Build
 
-### Optional CSFS message policy
+### CSFS message policy
 
-Nodes running this experimental branch can set `maxcsfsmsgsize=32` in
-`bitcoin.conf` (or use `-maxcsfsmsgsize=32`) to cap each executed CSFS message
-at 32 bytes for mempool admission, relay and local block templates. Restart
-the node after changing the setting. The default is `-1`, which disables
-this extra cap. `0` permits only empty messages; valid settings are `-1`
+Nodes running this experimental branch cap each executed CSFS message at
+**32 bytes by default** for mempool admission, relay and local block templates.
+Use `maxcsfsmsgsize=<n>` in `bitcoin.conf` (or `-maxcsfsmsgsize=<n>`) to change
+the cap, then restart the node. Setting `-1` disables this extra cap.
+`0` permits only empty messages; valid settings are `-1`
 through `520`. Existing RDTS and standardness limits still apply.
 
 This is **local policy, not consensus**: otherwise-valid blocks containing
