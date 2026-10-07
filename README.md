@@ -36,7 +36,12 @@ BIP340 Schnorr verification and charges the tapscript signature budget.
 INTERNALKEY pushes the 32-byte internal key from the validated Taproot control
 block. It does not expose private keys or modify the output's spending conditions.
 
-Existing signet participants must upgrade to validate INTERNALKEY spends.
+Existing signet participants must upgrade to accept INTERNALKEY spends. RDTS
+makes unknown OP_SUCCESS rejection mandatory, so this is a consensus relaxation
+relative to the previous signet client, not an upstream-style soft fork.
+An old client that already marked block 3179 invalid must upgrade and then
+reconsider block `12efe2b4c124965637322592e81abdd5cc22308a084ff4128d5973ccf2dfb8ea`
+or rebuild its block index with the upgraded binary.
 The existing network magic, challenge and chain are preserved. The three opcode
 semantics follow BIP448's referenced drafts, while this network retains the RDTS
 restrictions described below; this is not an unrestricted upstream BIP448 network.

@@ -63,3 +63,11 @@ Binary version: paperclip-signet2-bip448. The network retains RDTS restrictions
 and the configurable CSFS relay-message cap. No mainnet activation is proposed
 by this deployment. Full BIP446 script-assets import, fuzzing, and independent
 consensus review remain outstanding.
+
+## Upgrade compatibility clarification
+
+RDTS includes DISCOURAGE_OP_SUCCESS in mandatory consensus flags. An old
+verification node rejected the INTERNALKEY demonstration block at height 3179.
+After restarting it with the completed build and reconsidering that block, the
+node accepted it and passed full-chain verifychain (level 4). Participants must
+upgrade; this test-network rule relaxation is not an upstream-style soft fork.
