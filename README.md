@@ -4,10 +4,11 @@
 
 This repository starts from Bitcoin Knots `v29.4.2.knots20260508`
 (`58398baf33e588779685ead478e6397bb28ed3d6`) and adds an isolated
-Bitcoin signet for testing two draft proposals:
+Bitcoin signet for testing the three operations proposed by [BIP448](https://bips.dev/448/):
 
 - [BIP446 TEMPLATEHASH](https://bips.dev/446/), opcode `0xce`.
 - [BIP348 CHECKSIGFROMSTACK](https://bips.dev/348/), opcode `0xcc`.
+- [BIP349 INTERNALKEY](https://bips.dev/349/), opcode `0xcb`.
 
 The network is live at `node2.paperclippool.xyz:48333`. See
 [validation results](doc/paperclip-signet-validation.md) for the tested scope.
@@ -26,12 +27,19 @@ services or start a new chain.
 
 ## Rules and scope
 
-`-btccovtest` enables both opcodes only on custom signet or regtest. It is rejected
+`-btccovtest` enables all three opcodes only on custom signet or regtest. It is rejected
 on mainnet and other networks. Without that option, their existing OP_SUCCESS
-behavior and policy restrictions remain unchanged. Both instructions are defined
+behavior and policy restrictions remain unchanged. All three instructions are defined
 only in tapscript. TEMPLATEHASH uses cached BIP341 components and the BIP446
 `TemplateHash` tag. CSFS verifies an arbitrary-length stack message directly with
 BIP340 Schnorr verification and charges the tapscript signature budget.
+INTERNALKEY pushes the 32-byte internal key from the validated Taproot control
+block. It does not expose private keys or modify the output's spending conditions.
+
+Existing signet participants must upgrade to validate INTERNALKEY spends.
+The existing network magic, challenge and chain are preserved. The three opcode
+semantics follow BIP448's referenced drafts, while this network retains the RDTS
+restrictions described below; this is not an unrestricted upstream BIP448 network.
 
 The experimental signet activates Blake2b header-v2 at height 1, uses easy fixed
 proof of work and a private block-signing challenge, and uses separate network
@@ -40,7 +48,7 @@ The intended signer produces one block per minute. Coinbase maturity is 100
 blocks on this test network; this is not the mainnet maturity schedule.
 
 RDTS is active. This experiment deliberately makes two exceptions: activated
-TEMPLATEHASH/CSFS opcodes, and the verified BIP325 signature envelope in the
+TEMPLATEHASH/CSFS/INTERNALKEY opcodes, and the verified BIP325 signature envelope in the
 coinbase witness commitment (bounded to 160 bytes). Other output-size limits,
 annex restrictions, control-block limits and conditional-opcode restrictions remain.
 This is **not** consensus-compatible with unmodified Bitcoin nodes.

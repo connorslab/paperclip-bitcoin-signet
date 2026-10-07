@@ -2202,6 +2202,25 @@ static std::vector<unsigned int> AllConsensusFlags()
 /** Precomputed list of all valid combinations of consensus-relevant script validation flags. */
 static const std::vector<unsigned int> ALL_CONSENSUS_FLAGS = AllConsensusFlags();
 
+BOOST_AUTO_TEST_CASE(experimental_internalkey)
+{
+    ScriptExecutionData data;
+    data.m_internal_key = uint256::ONE;
+    std::vector<std::vector<unsigned char>> stack;
+    ScriptError error;
+    BOOST_CHECK(EvalScript(stack, CScript() << OP_INTERNALKEY, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, BaseSignatureChecker{}, SigVersion::TAPSCRIPT, data, &error));
+    BOOST_REQUIRE_EQUAL(stack.size(), 1U);
+    BOOST_CHECK(stack.back() == std::vector<unsigned char>(data.m_internal_key->begin(), data.m_internal_key->end()));
+    for (auto version : {SigVersion::BASE, SigVersion::WITNESS_V0}) {
+        stack.clear();
+        BOOST_CHECK(!EvalScript(stack, CScript() << OP_INTERNALKEY, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, BaseSignatureChecker{}, version, data, &error));
+        BOOST_CHECK_EQUAL(error, SCRIPT_ERR_BAD_OPCODE);
+    }
+    data.m_internal_key.reset();
+    stack.clear();
+    BOOST_CHECK(!EvalScript(stack, CScript() << OP_INTERNALKEY, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, BaseSignatureChecker{}, SigVersion::TAPSCRIPT, data, &error));
+}
+
 BOOST_AUTO_TEST_CASE(experimental_templatehash_bip446_vectors)
 {
     UniValue vectors;

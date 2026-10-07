@@ -31,21 +31,27 @@ class CovenantTest(BitcoinTestFramework):
         node = self.nodes[0]
         wallet = MiniWallet(node)
         self.generate(wallet, 105)
-        key = (42).to_bytes(32, 'big')
-        pubkey = compute_xonly_pubkey(key)[0]
-        for combined in (False, True):
+        # The same INTERNALKEY script works with distinct internal keys.
+        for mode, secret in ((0, 42), (1, 42), (2, 42), (2, 43)):
+            key = secret.to_bytes(32, 'big')
+            pubkey = compute_xonly_pubkey(key)[0]
             tx = CTransaction()
             tx.version = 2
             tx.vin = [CTxIn(COutPoint(0, 1), nSequence=0xfffffffd)]
             tx.vout = [CTxOut(99000, wallet.get_output_script())]
             expected = template_hash(tx)
-            script = CScript([CScriptOp(0xce), pubkey, CScriptOp(0xcc)]) if combined else CScript([CScriptOp(0xce), expected, OP_EQUAL])
+            if mode == 2:
+                script = CScript([CScriptOp(0xce), CScriptOp(0xcb), CScriptOp(0xcc)])
+            elif mode == 1:
+                script = CScript([CScriptOp(0xce), pubkey, CScriptOp(0xcc)])
+            else:
+                script = CScript([CScriptOp(0xce), expected, OP_EQUAL])
             tap = taproot_construct(pubkey, [('test', script)])
             funded = wallet.send_to(from_node=node, scriptPubKey=tap.scriptPubKey, amount=100000)
             self.generate(wallet, 1)
             tx.vin[0].prevout = COutPoint(int(funded['txid'], 16), funded['sent_vout'])
             control = bytes([0xc0 | tap.negflag]) + pubkey + tap.leaves['test'].merklebranch
-            witness = [sign_schnorr(key, expected)] if combined else []
+            witness = [sign_schnorr(key, expected)] if mode else []
             tx.wit.vtxinwit = [CTxInWitness()]
             tx.wit.vtxinwit[0].scriptWitness.stack = witness + [script, control]
             assert_equal(node.testmempoolaccept([tx.serialize().hex()])[0]['allowed'], True)

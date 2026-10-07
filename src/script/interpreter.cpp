@@ -1079,6 +1079,13 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                 }
                 break;
 
+                case OP_INTERNALKEY:
+                {
+                    if (sigversion != SigVersion::TAPSCRIPT || !(flags & SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS)) return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+                    if (!execdata.m_internal_key) return set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
+                    stack.emplace_back(execdata.m_internal_key->begin(), execdata.m_internal_key->end());
+                    break;
+                }
                 case OP_TEMPLATEHASH:
                 {
                     if (sigversion != SigVersion::TAPSCRIPT || !(flags & SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS)) return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
@@ -2082,7 +2089,7 @@ static bool ExecuteWitnessScript(const Span<const valtype>& stack_span, const CS
                 return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
             }
             // New opcodes will be listed here. May use a different sigversion to modify existing opcodes.
-            if (IsOpSuccess(opcode) && !((flags & SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS) && (opcode == OP_TEMPLATEHASH || opcode == OP_CHECKSIGFROMSTACK))) {
+            if (IsOpSuccess(opcode) && !((flags & SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS) && (opcode == OP_TEMPLATEHASH || opcode == OP_CHECKSIGFROMSTACK || opcode == OP_INTERNALKEY))) {
                 if (flags & SCRIPT_VERIFY_DISCOURAGE_OP_SUCCESS) {
                     return set_error(serror, SCRIPT_ERR_DISCOURAGE_OP_SUCCESS);
                 }
@@ -2219,6 +2226,7 @@ static bool VerifyWitnessProgram(const CScriptWitness& witness, int witversion, 
                 return set_error(serror, SCRIPT_ERR_WITNESS_PROGRAM_MISMATCH);
             }
             execdata.m_tapleaf_hash_init = true;
+            execdata.m_internal_key = uint256{Span{control}.subspan(1, 32)};
             if ((control[0] & TAPROOT_LEAF_MASK) == TAPROOT_LEAF_TAPSCRIPT) {
                 // Tapscript (leaf version 0xc0)
                 exec_script = CScript(script.begin(), script.end());

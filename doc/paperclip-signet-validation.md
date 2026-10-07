@@ -36,3 +36,30 @@ integration, automatic faucet, or external libbitcoinconsensus API support is
 claimed. Only BIP446's basic vectors were imported, not its full large script-assets
 corpus. Exhaustive fuzzing and independent consensus review remain future work.
 See README for the two deliberate RDTS exceptions and replay-protection limits.
+
+## BIP448 operation set — 2026-10-07
+
+The signet now implements all three operations referenced by BIP448, adding
+BIP349 INTERNALKEY (0xcb) to TEMPLATEHASH and CHECKSIGFROMSTACK.
+
+Validation: 19 selected native unit suites passed, including internal-key
+extraction and non-tapscript rejection. Functional covenant tests passed with
+two distinct internal keys, valid signatures, altered-output rejection,
+mining, and restart verification. Signed-signet and CSFS-policy tests passed.
+RDTS and unified-sighash regression tests also passed.
+
+An independent node synchronized the existing public chain and passed
+verifychain at level 4 over its entire chain. Node2 passed the same check after
+upgrade. The existing mainnet service was not restarted.
+
+A spend executing TEMPLATEHASH INTERNALKEY CHECKSIGFROMSTACK confirmed in
+block 3179 (12efe2b4c124965637322592e81abdd5cc22308a084ff4128d5973ccf2dfb8ea):
+973537dde4725fcdc2fabb0d923cf455e51c45aa52b7e31a3ce7cfd6c6c54083.
+Changing its output amount by one satoshi was rejected with Invalid Schnorr
+signature. This demonstration uses a public test key and also permits key-path
+spending; it is an opcode test, not a secure covenant protocol.
+
+Binary version: paperclip-signet2-bip448. The network retains RDTS restrictions
+and the configurable CSFS relay-message cap. No mainnet activation is proposed
+by this deployment. Full BIP446 script-assets import, fuzzing, and independent
+consensus review remain outstanding.

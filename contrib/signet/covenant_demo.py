@@ -17,6 +17,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--cli', required=True)
 parser.add_argument('--datadir', required=True)
 parser.add_argument('--wallet', required=True)
+parser.add_argument('--internal-key', action='store_true', help='Exercise all three BIP448 operations; the demonstration key also permits key-path spending')
 args = parser.parse_args()
 base = [args.cli, '-datadir=' + args.datadir, '-rpcwallet=' + args.wallet]
 def rpc(method, *params):
@@ -38,6 +39,9 @@ pubkey = compute_xonly_pubkey(secret)[0]
 # BIP341 NUMS internal key removes the known-key taproot bypass.
 internal = bytes.fromhex('50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0')
 script = CScript([CScriptOp(0xce), pubkey, CScriptOp(0xcc)])
+if args.internal_key:
+    internal = pubkey
+    script = CScript([CScriptOp(0xce), CScriptOp(0xcb), CScriptOp(0xcc)])
 tap = taproot_construct(internal, [('covenant', script)])
 address = encode_segwit_address('tb', 1, tap.output_pubkey)
 return_address = rpc('getnewaddress', 'covenant-return', 'bech32m')

@@ -251,6 +251,9 @@ enum class SigVersion
 
 struct ScriptExecutionData
 {
+    //! BIP349 internal key from the validated Taproot control block.
+    std::optional<uint256> m_internal_key;
+
     //! Whether m_tapleaf_hash is initialized.
     bool m_tapleaf_hash_init = false;
     //! The tapleaf hash.
