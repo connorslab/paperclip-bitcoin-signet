@@ -83,8 +83,8 @@ typedef enum ScriptError_t
     SCRIPT_ERR_OP_CODESEPARATOR,
     SCRIPT_ERR_SIG_FINDANDDELETE,
 
-    /* Local CSFS policy (never enforced by consensus checkers). */
-    SCRIPT_ERR_CSFS_MESSAGE_SIZE,
+    /* Consensus template-only CSFS restriction after activation. */
+    SCRIPT_ERR_CSFS_TEMPLATE,
 
     SCRIPT_ERR_ERROR_COUNT
 } ScriptError;

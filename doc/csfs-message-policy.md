@@ -1,110 +1,37 @@
-# Configurable CSFS message policy
+# Template-only CSFS: fixed consensus message size
 
-`-maxcsfsmsgsize=<n>` limits the number of message bytes consumed by each
-executed experimental `OP_CHECKSIGFROMSTACK`. It applies only when CSFS is
-active through `-btccovtest` on the experimental signet or private regtest.
-The default cap is 32 bytes. It does not activate opcodes on any other network.
+CSFS requires exactly 32 bytes equal to the current input's BIP446 TEMPLATEHASH.
+The rule applies before signature handling, including empty signatures and unknown
+key types. A different 32-byte digest, or a hash of unrelated data, fails.
 
-```ini
-# bitcoin.conf; restart the node to apply
-maxcsfsmsgsize=32
-```
+This is consensus, not a configurable size policy. The former `-maxcsfsmsgsize`
+option has been removed; remove it from existing configurations. There is no
+signet opt-out. Matching digest values may be supplied by any stack source; no
+opcode-origin tracking is implied.
 
-| Value | Meaning |
-| --- | --- |
-| `-1` | No additional CSFS message cap |
-| `0` | Only empty messages |
-| `32` (default) | Messages up to 32 bytes, including TEMPLATEHASH results |
-| `1` through `520` | Explicit maximum message length in bytes |
+The experimental signet activates at height **3250**, inclusive. Historical blocks
+retain the previous rules. Updated nodes enforce the restriction immediately in
+mempool admission and mining selection, before block activation. Regtest defaults
+to activation at zero; `-testactivationheight=csfstemplate@<height>` and the
+regtest-only value `-1` exist for historical/activation tests.
 
-Malformed values and values outside this range fail startup. A limit does
-not relax the existing RDTS stack-element limit or standard witness-element
-limits. Disabling this cap does not disable those other restrictions.
+This is a per-message rule, not a transaction-wide 32-byte budget. The experimental
+Ark two-input refund uses two 32-byte messages and remains valid. Script signature
+budgets, transaction weight, and RDTS limits still apply. This restriction does
+not eliminate other data-carrying paths or supply application replay domains.
 
-## What it enforces
+Existing outputs that require arbitrary-message CSFS may become unspendable after
+activation. General BIP348 delegation and oracle constructions are not supported
+by the narrowed rule. Test coins only; no production activation is proposed.
 
-Transactions exceeding the cap are rejected from the local mempool with
-`csfs-message-size`, including via `testmempoolaccept`, `sendrawtransaction`
-and peer admission. They therefore are not relayed or selected for normal
-local block templates. Mempool reload and reorg re-admission use the same
-policy. Other nodes may use different limits and mine these transactions;
-otherwise-valid blocks are still accepted by this node.
-
-The check inspects the actual message on the execution stack. It handles
-witness arguments, script literals and computed messages, rather than
-guessing from script bytes. It applies even when the CSFS signature is
-empty. Ordinary consensus checkers impose no additional CSFS message limit.
-
-An uncached policy-only script pass runs after normal script verification
-when the cap is enabled. It uses the existing transaction signature checker
-and signature cache but never caches its policy result in the consensus
-script-execution cache. A previous successful block or script-cache entry
-cannot bypass the cap. This adds script execution work for capped nodes;
-there is no additional pass when explicitly disabled with `-maxcsfsmsgsize=-1`.
-
-## Scope and tradeoffs
-
-This is a per-message size policy, not a total transaction-data budget or
-a data-storage prevention mechanism. It does not reduce signature or public
-key sizes, count CSFS executions, identify meaningful messages, restrict
-other data-carrying script paths, or limit a preimage that a script hashes
-before CSFS. For example, an 80-byte witness item hashed with `OP_SHA256`
-produces a 32-byte message and passes a 32-byte cap, subject to all other
-rules. Multiple individually compliant messages also remain possible.
-
-The current TEMPLATEHASH/CSFS design verifies a 32-byte digest and remains
-compatible with a 32-byte cap. Applications signing longer messages directly
-must use a compatible local policy or a separately designed commitment
-protocol. Merely hashing messages requires agreement by signers and scripts;
-it cannot transparently preserve an existing signature over raw data.
-
-The setting makes no consensus change and requires no network activation.
-It is not a guarantee that miners elsewhere follow the same policy, and it
-does not provide application replay protection. Do not deploy experimental
-covenants with real funds based on this filter.
-
-## Reproducible validation
-
-Build the node and unit tests, then run from the source root:
+Validation entry points:
 
 ```sh
 build/bin/test_bitcoin --run_test=script_tests
-python3 test/functional/mempool_csfs_policy.py --configfile=build/test/config.ini
+python3 test/functional/feature_csfs_template.py --configfile=build/test/config.ini
 python3 test/functional/feature_bitcoin_covenants.py --configfile=build/test/config.ini
+python3 test/functional/mempool_csfs_policy.py --configfile=build/test/config.ini
 ```
 
-The new private-regtest test covers witness and script message boundaries,
-zero/disabled/maximum settings, malformed startup values, a TEMPLATEHASH
-spend, hashing a larger preimage, repeated validation, mempool and block
-template rejection, acceptance of an over-cap transaction inside a valid
-block, reorg re-admission, and restart. Unit coverage applies the cap to
-valid BIP340 vectors, including empty and longer messages, and checks that
-checker wrappers preserve it. Tests use disposable local chains only.
-
-### Validation results — October 5, 2026
-
-- Native Linux Release build completed on Flynn.
-- All 19 selected script, sighash, signet, proof-of-work and validation unit
-  suites passed, including the new CSFS policy vectors.
-- `mempool_csfs_policy.py` passed on a two-node private regtest chain. This
-  also covers empty signatures, multiple individually compliant CSFS calls,
-  and dropping a previously permitted transaction during mempool reload
-  after lowering the cap.
-- Existing covenant, RDTS and unified-sighash functional tests passed.
-- The signed-signet functional test passed standalone with exit status 0.
-  The combined runner marked it failed because the existing imported signet
-  miner emits logging to stderr; its assertions passed. This logging issue
-  was not changed as part of the policy patch.
-
-No live signet or production service was restarted or reconfigured. These
-are native local test results, not a claim of a completed GitHub CI run.
-
-The default was subsequently changed to 32 bytes. The native Release rebuild,
-two-node policy test (with the capped node's option omitted), and existing
-covenant functional test all passed again. Explicit `-1` opt-out remains tested.
-
-After adopting Bitcoin filenames and the `-btccovtest` option, the native
-Release rebuild and all three covenant, signed-signet and CSFS policy tests
-passed again. The signed-signet test confirms that the new option and hidden
-legacy alias synchronize on the same network, and rejects conflicting settings.
-Existing chain data and network identity remain unchanged.
+The last test explicitly disables the new deployment on private regtest to retain
+coverage of historical blocks. It is not a signet configuration example.

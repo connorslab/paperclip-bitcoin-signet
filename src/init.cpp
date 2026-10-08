@@ -732,7 +732,6 @@ void SetupServerArgs(ArgsManager& argsman, bool can_listen_ipc)
                              MAX_OP_RETURN_RELAY),
                    ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
     argsman.AddArg("-maxscriptsize", strprintf("Maximum size of scripts (including the entire witness stack) we relay and mine, in bytes (default: %s)", DEFAULT_SCRIPT_SIZE_POLICY_LIMIT), ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
-    argsman.AddArg("-maxcsfsmsgsize=<n>", strprintf("Maximum message bytes per executed experimental CHECKSIGFROMSTACK for mempool admission, relay and mining (0-520; -1 disables this extra policy limit; default: %u). Does not affect block validation. Requires -btccovtest for CSFS activation.", DEFAULT_CSFS_MESSAGE_SIZE_LIMIT), ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
     argsman.AddArg("-maxtxlegacysigops",
                    strprintf("Maximum number of legacy sigops allowed in transactions we relay and mine, as measured by BIP54 (default: %s)",
                              MAX_TX_LEGACY_SIGOPS),
@@ -1221,12 +1220,6 @@ bool AppInitParameterInteraction(const ArgsManager& args)
     }
 
     g_script_size_policy_limit = args.GetIntArg("-maxscriptsize", g_script_size_policy_limit);
-
-    int64_t csfs_message_size_limit;
-    if (!ParseInt64(args.GetArg("-maxcsfsmsgsize", strprintf("%u", DEFAULT_CSFS_MESSAGE_SIZE_LIMIT)), &csfs_message_size_limit) || csfs_message_size_limit < -1 || csfs_message_size_limit > MAX_SCRIPT_ELEMENT_SIZE) {
-        return InitError(_("Invalid -maxcsfsmsgsize: use -1 to disable, or a byte limit from 0 to 520"));
-    }
-    g_csfs_message_size_limit = csfs_message_size_limit == -1 ? std::nullopt : std::make_optional(static_cast<unsigned int>(csfs_message_size_limit));
 
     nBytesPerSigOp = args.GetIntArg("-bytespersigop", nBytesPerSigOp);
     nBytesPerSigOpStrict = args.GetIntArg("-bytespersigopstrict", nBytesPerSigOpStrict);

@@ -19,16 +19,17 @@ This repository implements the [unnumbered BIP draft, Taproot Rebindable Transac
 
 ### How this differs from upstream BIP 448
 
-The three opcode numbers and their meanings are unchanged. The adaptation is their execution and deployment under Bitcoin's RDTS rules.
+The opcode numbers are unchanged. CSFS is narrowed to exactly the current input's 32-byte TEMPLATEHASH; arbitrary-message CSFS is prohibited. TEMPLATEHASH and INTERNALKEY retain their upstream definitions.
 
 | Area | Upstream BIP 448 | This experiment |
 | --- | --- | --- |
 | Upgrade type | Tightens ordinary Tapscript OP_SUCCESS behavior, allowing a soft fork. | RDTS already rejects unknown OP_SUCCESS operations at consensus. Allowing these operations relaxes that rule and requires upgraded clients. |
+| CSFS message | Arbitrary stack messages under BIP 348. | Exactly 32 bytes equal to the current input template hash; consensus-enforced after activation, including empty signatures. |
 | Script limits | Uses ordinary Tapscript rules. | Retains 256-byte stack elements, at most seven Taproot Merkle branch hashes, no annexes, and no Tapscript OP_IF or OP_NOTIF. |
 | Hashing and signatures | BIP 446 tagged SHA256 template hashes and BIP 340 signatures. | Same definitions. Header hashing does not change template hashing; CSFS does not automatically inherit transaction-signature replay protection. |
 | Deployment | Activation is unspecified. | Live on experimental signet, with custom signet and regtest support. Production activation remains unspecified. |
 
-The configurable 32-byte CSFS message cap is separate relay and local-mining policy, not a consensus requirement. A construction valid under upstream BIP 448 may fail here if it needs features prohibited by RDTS.
+CSFS has a fixed consensus requirement: exactly 32 bytes equal to the current input's template hash. The old `-maxcsfsmsgsize` option is removed. Signet block activation is height 3250; updated nodes reject other CSFS messages from the mempool immediately. A construction valid under upstream BIP 448 may fail here if it needs features prohibited by RDTS.
 
 ## Network identity
 
@@ -50,8 +51,8 @@ services or start a new chain.
 on mainnet and other networks. Without that option, their existing OP_SUCCESS
 behavior and policy restrictions remain unchanged. All three instructions are defined
 only in tapscript. TEMPLATEHASH uses cached BIP341 components and the BIP446
-`TemplateHash` tag. CSFS verifies an arbitrary-length stack message directly with
-BIP340 Schnorr verification and charges the tapscript signature budget.
+`TemplateHash` tag. CSFS verifies only the current input's 32-byte template digest with
+BIP340 Schnorr verification after activation, and charges the tapscript signature budget.
 INTERNALKEY pushes the 32-byte internal key from the validated Taproot control
 block. It does not expose private keys or modify the output's spending conditions.
 
@@ -61,8 +62,8 @@ relative to the previous signet client, not an upstream-style soft fork.
 An old client that already marked block 3179 invalid must upgrade and then
 reconsider block `12efe2b4c124965637322592e81abdd5cc22308a084ff4128d5973ccf2dfb8ea`
 or rebuild its block index with the upgraded binary.
-The existing network magic, challenge and chain are preserved. The three opcode
-semantics follow BIP448's referenced drafts, while this network retains the RDTS
+The existing network magic, challenge and chain are preserved. The TEMPLATEHASH and INTERNALKEY definitions follow their referenced drafts; CSFS
+now additionally restricts its message, while this network retains the RDTS
 restrictions described below; this is not an unrestricted upstream BIP448 network.
 
 The experimental signet activates Blake2b header-v2 at height 1, uses easy fixed
@@ -86,22 +87,17 @@ implementation.
 
 ## Build
 
-### CSFS message policy
+### Fixed CSFS message rule
 
-Nodes running this experimental branch cap each executed CSFS message at
-**32 bytes by default** for mempool admission, relay and local block templates.
-Use `maxcsfsmsgsize=<n>` in `bitcoin.conf` (or `-maxcsfsmsgsize=<n>`) to change
-the cap, then restart the node. Setting `-1` disables this extra cap.
-`0` permits only empty messages; valid settings are `-1`
-through `520`. Existing RDTS and standardness limits still apply.
+CSFS accepts exactly the current input's 32-byte TEMPLATEHASH. This is a
+consensus rule from signet height **3250**, with immediate mempool enforcement
+on updated nodes. Arbitrary messages and unrelated hashes fail, even with empty
+signatures. The former `maxcsfsmsgsize` setting has been removed; remove it from
+existing configurations. There is no signet opt-out.
 
-This is **local policy, not consensus**: otherwise-valid blocks containing
-larger messages remain valid. The limit covers the actual message consumed
-by CSFS, whether witness-supplied, script-supplied or computed. It does not
-cap the 64-byte signature, total transaction data, number of CSFS calls, or
-preimages hashed down before verification. A 32-byte limit permits the
-current TEMPLATEHASH/CSFS covenant design, but is not a general data-storage
-filter. See [policy details and tests](doc/csfs-message-policy.md).
+The limit is per message, not per transaction. Two-input Ark refunds can use two
+32-byte digests. Other script data paths remain possible; this is not a blanket
+anti-data guarantee. See [rule details and tests](doc/csfs-message-policy.md).
 
 ### Build from source
 

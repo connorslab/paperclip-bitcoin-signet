@@ -1546,7 +1546,12 @@ bool MemPoolAccept::PolicyScriptChecks(const ATMPArgs& args, Workspace& ws)
     // that flag from the same place.
     const unsigned int scriptVerifyFlags = PolicyScriptVerifyFlags(args.m_ignore_rejects) |
         UnifiedSighashMempoolFlag(m_active_chainstate.m_chainman) |
-        (m_active_chainstate.m_chainman.GetConsensus().experimental_covenants ? uint32_t{SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS} : 0U);
+        (m_active_chainstate.m_chainman.GetConsensus().experimental_covenants ? uint32_t{SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS} : 0U) |
+        // Enforce scheduled restrictions early in the mempool so transactions
+        // admitted before activation cannot poison block construction at it.
+        (m_active_chainstate.m_chainman.GetConsensus().experimental_covenants &&
+         m_active_chainstate.m_chainman.GetConsensus().csfs_template_height != std::numeric_limits<int>::max()
+            ? uint32_t{SCRIPT_VERIFY_CSFS_TEMPLATE} : 0U);
 
     // Check input scripts and signatures.
     // This is done last to help prevent CPU exhaustion denial-of-service attacks.
@@ -1557,28 +1562,6 @@ bool MemPoolAccept::PolicyScriptChecks(const ATMPArgs& args, Workspace& ws)
                     state.GetRejectReason(), state.GetDebugMessage());
         }
         return false; // state filled in by CheckInputScripts
-    }
-
-    if (g_csfs_message_size_limit && (scriptVerifyFlags & SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS)) {
-        // Run separately from CheckInputScripts: the script cache key commits to
-        // consensus flags, not this node's configurable policy limit. Neither a
-        // cache hit nor successful block validation may bypass this check.
-        auto& txdata = ws.m_precomputed_txdata;
-        if (!txdata.m_spent_outputs_ready) {
-            std::vector<CTxOut> spent_outputs;
-            spent_outputs.reserve(tx.vin.size());
-            for (const auto& txin : tx.vin) spent_outputs.push_back(m_view.AccessCoin(txin.prevout).out);
-            txdata.Init(tx, std::move(spent_outputs), /*force=*/!!(scriptVerifyFlags & SCRIPT_VERIFY_UNIFIED_SIGHASH));
-        }
-        for (unsigned int i = 0; i < tx.vin.size(); ++i) {
-            const auto& spent = txdata.m_spent_outputs[i];
-            CachingTransactionSignatureChecker checker(&tx, i, spent.nValue, /*storeIn=*/true, GetValidationCache().m_signature_cache, txdata);
-            CSFSMessageSizePolicyChecker policy_checker(checker, *g_csfs_message_size_limit);
-            ScriptError error{SCRIPT_ERR_OK};
-            if (!VerifyScript(tx.vin[i].scriptSig, spent.scriptPubKey, &tx.vin[i].scriptWitness, scriptVerifyFlags, policy_checker, &error)) {
-                return state.Invalid(TxValidationResult::TX_NOT_STANDARD, "csfs-message-size", ScriptErrorString(error));
-            }
-        }
     }
 
     return true;
@@ -2777,6 +2760,9 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex& block_index, const Ch
     }
 
     if (consensusparams.experimental_covenants) flags |= SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS;
+    if (consensusparams.experimental_covenants && block_index.nHeight >= consensusparams.csfs_template_height) {
+        flags |= SCRIPT_VERIFY_CSFS_TEMPLATE;
+    }
 
     // RDTS (see RdtsActiveAt). Genesis has no parent median-time-past and is
     // never subject to the RDTS rules.

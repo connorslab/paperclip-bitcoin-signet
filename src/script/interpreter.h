@@ -176,6 +176,7 @@ enum : uint32_t {
     // Constants to point to the highest flag in use. Add new flags above this line.
     //
     SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS = (1U << 23),
+    SCRIPT_VERIFY_CSFS_TEMPLATE = (1U << 24),
 
     SCRIPT_VERIFY_END_MARKER
 };
@@ -349,9 +350,6 @@ public:
 
     virtual bool GetTemplateHash(const ScriptExecutionData&, uint256&) const { return false; }
 
-    /** Local policy hook. Consensus checkers impose no CSFS message-size limit. */
-    virtual bool CheckCSFSMessageSize(size_t) const { return true; }
-
     virtual ~BaseSignatureChecker() = default;
 };
 
@@ -420,7 +418,6 @@ protected:
 public:
     DeferringSignatureChecker(const BaseSignatureChecker& checker) : m_checker(checker) {}
     bool GetTemplateHash(const ScriptExecutionData& execdata, uint256& hash) const override { return m_checker.GetTemplateHash(execdata, hash); }
-    bool CheckCSFSMessageSize(size_t size) const override { return m_checker.CheckCSFSMessageSize(size); }
 
     bool CheckECDSASignature(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode, SigVersion sigversion, SighashRules sighash_rules = SighashRules::LEGACY) const override
     {

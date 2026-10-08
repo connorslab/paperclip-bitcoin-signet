@@ -114,6 +114,7 @@ struct ChainstateRevalidationDeployment {
  */
 struct Params {
     bool experimental_covenants{false};
+    int csfs_template_height{std::numeric_limits<int>::max()};
     uint256 hashGenesisBlock;
     int nSubsidyHalvingInterval;
     /**

@@ -536,6 +536,7 @@ public:
 
         m_chain_type = ChainType::SIGNET;
         consensus.experimental_covenants = options.experimental_covenants;
+        if (options.experimental_covenants) consensus.csfs_template_height = 3250;
         consensus.signet_blocks = true;
         consensus.signet_challenge.assign(bin.begin(), bin.end());
         consensus.nSubsidyHalvingInterval = 210000;
@@ -622,6 +623,7 @@ public:
     {
         m_chain_type = ChainType::REGTEST;
         consensus.experimental_covenants = opts.experimental_covenants;
+        if (opts.experimental_covenants) consensus.csfs_template_height = opts.csfs_template_height;
         consensus.signet_blocks = false;
         consensus.signet_challenge.clear();
         consensus.nSubsidyHalvingInterval = 150;

@@ -102,7 +102,7 @@ static ScriptErrorDesc script_errors[]={
     {SCRIPT_ERR_WITNESS_PUBKEYTYPE, "WITNESS_PUBKEYTYPE"},
     {SCRIPT_ERR_OP_CODESEPARATOR, "OP_CODESEPARATOR"},
     {SCRIPT_ERR_SIG_FINDANDDELETE, "SIG_FINDANDDELETE"},
-    {SCRIPT_ERR_CSFS_MESSAGE_SIZE, "CSFS_MESSAGE_SIZE"},
+    {SCRIPT_ERR_CSFS_TEMPLATE, "CSFS_TEMPLATE"},
 };
 
 static std::string FormatScriptError(ScriptError_t err)
@@ -508,30 +508,41 @@ BOOST_AUTO_TEST_CASE(experimental_csfs)
     check(sig, msg, 0, SCRIPT_ERR_BAD_OPCODE);
 }
 
-BOOST_AUTO_TEST_CASE(experimental_csfs_message_policy)
+BOOST_AUTO_TEST_CASE(experimental_csfs_template_only)
 {
-    UniValue vectors;
-    BOOST_REQUIRE(vectors.read(CSFS_BIP340_VECTORS));
-    const BaseSignatureChecker consensus_checker;
-    for (const auto& vector : vectors.getValues()) {
-        if (vector["verification result"].get_str() != "TRUE") continue;
-        const auto pubkey = ParseHex(vector["public key"].get_str());
-        const auto msg = ParseHex(vector["message"].get_str());
-        const auto sig = ParseHex(vector["signature"].get_str());
-        for (const size_t limit : {size_t{0}, size_t{32}, size_t{520}}) {
-            CSFSMessageSizePolicyChecker policy_checker(consensus_checker, limit);
-            // Wrapping must not lose the policy hook.
-            DeferringSignatureChecker wrapper(static_cast<const BaseSignatureChecker&>(policy_checker));
-            std::vector<std::vector<unsigned char>> stack{sig, msg, pubkey};
-            ScriptExecutionData data;
-            data.m_validation_weight_left_init = true;
-            data.m_validation_weight_left = 50;
-            ScriptError error;
-            const bool ok = EvalScript(stack, CScript() << OP_CHECKSIGFROMSTACK, SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS, wrapper, SigVersion::TAPSCRIPT, data, &error);
-            BOOST_CHECK_EQUAL(ok, msg.size() <= limit);
-            BOOST_CHECK_EQUAL(error, msg.size() <= limit ? SCRIPT_ERR_OK : SCRIPT_ERR_CSFS_MESSAGE_SIZE);
+    struct TemplateChecker : BaseSignatureChecker {
+        bool GetTemplateHash(const ScriptExecutionData&, uint256& hash) const override {
+            hash = uint256::ONE;
+            return true;
         }
-    }
+    } checker;
+    CKey key;
+    key.MakeNewKey(true);
+    const XOnlyPubKey pubkey{key.GetPubKey()};
+    const uint256 digest = uint256::ONE;
+    std::vector<unsigned char> message(digest.begin(), digest.end()), sig(64);
+    BOOST_REQUIRE(key.SignSchnorr(digest, sig, nullptr, uint256{}));
+    auto check = [&](const std::vector<unsigned char>& msg, const std::vector<unsigned char>& signature, const std::vector<unsigned char>& public_key, ScriptError expected) {
+        std::vector<std::vector<unsigned char>> stack{signature, msg, public_key};
+        ScriptExecutionData data;
+        data.m_validation_weight_left_init = true;
+        data.m_validation_weight_left = 50;
+        ScriptError error;
+        const bool ok = EvalScript(stack, CScript() << OP_CHECKSIGFROMSTACK,
+            SCRIPT_VERIFY_EXPERIMENTAL_COVENANTS | SCRIPT_VERIFY_CSFS_TEMPLATE,
+            checker, SigVersion::TAPSCRIPT, data, &error);
+        BOOST_CHECK_EQUAL(ok, expected == SCRIPT_ERR_OK);
+        BOOST_CHECK_EQUAL(error, expected);
+    };
+    const std::vector<unsigned char> public_key(pubkey.begin(), pubkey.end());
+    check(message, sig, public_key, SCRIPT_ERR_OK);
+    check(message, {}, public_key, SCRIPT_ERR_OK);
+    message[0] ^= 1;
+    check(message, sig, public_key, SCRIPT_ERR_CSFS_TEMPLATE);
+    check(message, {}, public_key, SCRIPT_ERR_CSFS_TEMPLATE);
+    check(message, {1}, {1}, SCRIPT_ERR_CSFS_TEMPLATE);
+    check({}, {}, public_key, SCRIPT_ERR_CSFS_TEMPLATE);
+    check(std::vector<unsigned char>(33, 1), {}, public_key, SCRIPT_ERR_CSFS_TEMPLATE);
 }
 
 BOOST_AUTO_TEST_CASE(script_build)

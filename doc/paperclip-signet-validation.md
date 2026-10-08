@@ -1,6 +1,6 @@
 # Current scope
 
-This implementation accompanies the [unnumbered BIP draft](https://github.com/connorslab/bitcoin-rebindable-transactions). It keeps the three BIP 448 opcode semantics while retaining RDTS restrictions. Activation relaxes RDTS consensus rules and requires upgraded clients. The CSFS message cap is separate local policy. The dated records below describe each deployment stage.
+This implementation accompanies the [unnumbered BIP draft](https://github.com/connorslab/bitcoin-rebindable-transactions). It retains RDTS restrictions and narrows CSFS to the current input template hash after height 3250. Activation relaxes RDTS consensus rules and requires upgraded clients. The new CSFS rule has a fixed 32-byte consensus requirement; historical policy-only records below describe earlier versions. The dated records below describe each deployment stage.
 
 # Validation - 2026-10-05
 
@@ -75,3 +75,39 @@ verification node rejected the INTERNALKEY demonstration block at height 3179.
 After restarting it with the completed build and reconsidering that block, the
 node accepted it and passed full-chain verifychain (level 4). Participants must
 upgrade; this test-network rule relaxation is not an upstream-style soft fork.
+
+## Template-only CSFS upgrade — October 8, 2026 UTC
+
+Version: `paperclip-signet3-template-csfs`. Deployed on node2 at height 3240.
+The new fixed rule activates for blocks at height **3250**, inclusive. Updated
+mempools enforce it immediately. Earlier blocks retain the previous rules.
+
+Every CSFS message must be exactly 32 bytes equal to the current input template
+hash, including empty-signature calls and unknown key types. This narrows the
+message domain without changing the BIP340 verification algorithm. The optional
+size-policy setting and additional policy-only script pass were removed.
+
+Validation of the deployed build:
+
+- All 19 selected native unit suites passed.
+- Functional tests passed: template-only activation, existing covenant spends,
+  historical CSFS, RDTS, unified sighash, and signed signet synchronization.
+- Boundary tests reject 0-, 31-, 33-, 64- and 80-byte messages, unrelated 32-byte
+  values, and hashes of unrelated preimages. A correct digest supplied as a
+  constant remains valid; the rule checks value rather than opcode provenance.
+- A pre-activation arbitrary-message block remains valid; an activation-height
+  block containing such a spend is rejected. Historical script cache population,
+  restart, full-chain verification, and valid template spends are covered.
+- Both experimental Ark harnesses passed against this exact build: offline
+  refresh/recovery and native ASP/watchman crash, reorg and service-offline exit.
+  These are single-balance experimental protocols, not complete production Ark.
+- Node2 full-chain verification passed after deployment. Signet RPC downtime was
+  1.48 seconds. The main Bitcoin node was not restarted. A clean private backup
+  of the previous binaries and datadir was retained.
+
+Deployed executable SHA256:
+
+- bitcoind: `1e586a18863badd1d5205ca32704fb5b1383287d03a4727a52fe6912547102bb`
+- bitcoin-cli: `74b004d2035848d40f8a189b287dfd445c580054ce0ab0c019dc74516fc0451c`
+
+This restricts arbitrary CSFS messages, not all possible data storage in Bitcoin.

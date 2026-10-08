@@ -21,15 +21,6 @@ class CCoinsViewCache;
 class CFeeRate;
 class CScript;
 
-/** Only used in the uncached mempool policy pass, never in block validation. */
-class CSFSMessageSizePolicyChecker final : public DeferringSignatureChecker
-{
-    const size_t m_limit;
-
-public:
-    CSFSMessageSizePolicyChecker(const BaseSignatureChecker& checker, size_t limit) : DeferringSignatureChecker(checker), m_limit(limit) {}
-    bool CheckCSFSMessageSize(size_t size) const override { return size <= m_limit && m_checker.CheckCSFSMessageSize(size); }
-};
 namespace kernel {
 struct MemPoolOptions;
 };

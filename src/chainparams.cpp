@@ -76,12 +76,21 @@ void ReadRegTestArgs(const ArgsManager& args, CChainParams::RegTestOptions& opti
         }
 
         const auto value{arg.substr(found + 1)};
+        if (arg.substr(0, found) == "csfstemplate" && value == "-1") {
+            // Regtest-only historical-rule testing; never a signet override.
+            options.csfs_template_height = std::numeric_limits<int>::max();
+            continue;
+        }
         int32_t height;
         if (!ParseInt32(value, &height) || height < 0 || height >= std::numeric_limits<int>::max()) {
             throw std::runtime_error(strprintf("Invalid height value (%s) for -testactivationheight=name@height.", arg));
         }
 
         const auto deployment_name{arg.substr(0, found)};
+        if (deployment_name == "csfstemplate") {
+            options.csfs_template_height = height;
+            continue;
+        }
         if (const auto buried_deployment = GetBuriedDeployment(deployment_name)) {
             options.activation_heights[*buried_deployment] = height;
         } else {
