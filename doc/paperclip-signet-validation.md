@@ -111,3 +111,9 @@ Deployed executable SHA256:
 - bitcoin-cli: `74b004d2035848d40f8a189b287dfd445c580054ce0ab0c019dc74516fc0451c`
 
 This restricts arbitrary CSFS messages, not all possible data storage in Bitcoin.
+
+
+Activation confirmed: signet block **3250**, hash
+`4a310b0732f864f73ec808946ab153cb85db2cf5200dbe0c0f40ca3eb8b938ec`.
+The node continued beyond activation and passed full-chain verification at
+height 3251. No forced blocks, chain reset or activation-time restart was used.
