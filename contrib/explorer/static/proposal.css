@@ -10,3 +10,20 @@
 @media(prefers-reduced-motion:no-preference){.payment-cloud span{animation:payment-arrival .8s ease-out both}.payment-cloud span:nth-child(2){animation-delay:.12s}.payment-cloud span:nth-child(3){animation-delay:.24s}.payment-cloud span:nth-child(4){animation-delay:.36s}.payment-cloud span:nth-child(5){animation-delay:.48s}.payment-cloud span:nth-child(6){animation-delay:.6s}.stem{transform-origin:top;animation:connect-line .65s .7s ease-out both}.anchor-block{animation:payment-arrival .7s 1.2s ease-out both}.reveal-once{animation:section-arrival .65s ease-out both}.flow-card.updated{animation:card-update .45s ease-out}.ark-diagram>div.active-step span{animation:card-update .5s ease-out}@keyframes payment-arrival{from{opacity:0;translate:0 -10px}to{opacity:1;translate:0 0}}@keyframes connect-line{from{transform:scaleY(0)}to{transform:scaleY(1)}}@keyframes section-arrival{from{opacity:.35;translate:0 18px}to{opacity:1;translate:0 0}}@keyframes card-update{50%{box-shadow:0 0 0 4px var(--soft);border-color:var(--accent)}}}
 @media(max-width:650px){.plain-grid{grid-template-columns:1fr;gap:14px}.plain-grid article{padding:22px}.plain-symbol{float:right;font-size:32px;margin:0 0 12px 12px}.plain-grid h3{font-size:21px}.technical dl{grid-template-columns:1fr;gap:6px}.technical dd{margin-bottom:12px}.technical{padding:14px}.beginner-takeaway{padding:18px}.usecase .walkthrough-explanation{min-height:130px}}
 @media(prefers-reduced-motion:reduce){.ark-diagram>div{transition:none}}
+
+/* Keep the desktop comparison table; present each property as a mobile card. */
+.comparison-label{display:none}
+@media(max-width:650px){
+ .technical .compare-scroll{overflow:visible;border:0;border-radius:0}
+ .compare-scroll table{min-width:0;display:block;background:transparent}
+ .compare-scroll caption{display:block;padding:0 0 14px;border:0;font-size:11px}
+ .compare-scroll thead{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+ .compare-scroll tbody{display:grid;gap:14px}
+ .compare-scroll tbody tr{display:block;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--bg)}
+ .compare-scroll tbody th,.compare-scroll tbody td{display:block;width:100%;padding:14px 16px;border:0;overflow-wrap:anywhere}
+ .compare-scroll tbody th{background:var(--raised);font-size:14px;font-weight:700}
+ .compare-scroll tbody td{font-size:13px;line-height:1.7}
+ .compare-scroll tbody td:last-child{border-top:1px solid var(--line);background:var(--soft)}
+ .comparison-label{display:block;margin-bottom:6px;font-size:10px;font-weight:750;letter-spacing:.8px;color:var(--muted)}
+ .compare-scroll tbody td:last-child .comparison-label{color:var(--accent)}
+}
