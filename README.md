@@ -124,7 +124,7 @@ The unit suite includes the published BIP446 basic vectors and CSFS checks.
 
 Release binaries target **Ubuntu 26.04 x86_64**. Runtime packages are
 `libevent-extra-2.1-7t64`, `libevent-pthreads-2.1-7t64`, and `libsqlite3-0`.
-Check release SHA256SUMS and use a build with INTERNALKEY support (paperclip-signet2-bip448 or later). Earlier binaries cannot follow the current chain past its first INTERNALKEY spend. Build current source if a compatible release binary is unavailable.
+Use [v0.2.0-bitcoin-signet](https://github.com/connorslab/paperclip-bitcoin-signet/releases/tag/v0.2.0-bitcoin-signet), version `paperclip-signet3-template-csfs`, or build current source. Verify the archive hash in the release notes and the extracted binaries against SHA256SUMS. Earlier builds do not enforce template-only CSFS at height 3250; builds before INTERNALKEY also cannot validate the existing chain past its first INTERNALKEY spend.
 
 ```sh
 mkdir -m 700 "$HOME/.paperclip-bitcoin-signet"
