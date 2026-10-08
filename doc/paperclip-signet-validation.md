@@ -112,6 +112,12 @@ Deployed executable SHA256:
 
 This restricts arbitrary CSFS messages, not all possible data storage in Bitcoin.
 
+Live post-activation application tests are documented in the
+[October 8 report](evidence/2026-10-08/README.md): a completed three-party
+stale-state contest and settlement, plus one Ark offline refresh and independent
+recovery. The planned second Ark refresh did not complete after a harness delay
+crossed its funding cutoff; the report records this limitation explicitly.
+
 
 Activation confirmed: signet block **3250**, hash
 `4a310b0732f864f73ec808946ab153cb85db2cf5200dbe0c0f40ca3eb8b938ec`.

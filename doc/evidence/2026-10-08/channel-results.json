@@ -1,0 +1,99 @@
+{
+  "network": "experimental-bitcoin-signet",
+  "settlement_confirmed": true,
+  "transactions": {
+    "funding": {
+      "txid": "59d9b86d6ce83af69403aa72219a34835cfc70c1c71c8293862002dcde07d4d0",
+      "height": 4120,
+      "blockhash": "61ebca994b62387c2b4a2c4dc558c399efd2f2e20d0fc53f35b388a7f80f12d8",
+      "confirmations": 16,
+      "vsize": 218,
+      "outputs": [
+        301000,
+        1000,
+        2000,
+        695782
+      ]
+    },
+    "stale": {
+      "txid": "15c248b1cf7f67426da330ad1df28b73e8aa359e7ff3e58706d9c230afa587ee",
+      "height": 4121,
+      "blockhash": "41954cb1bed3a619e813ec534d0c7e23125aa5c3cfcf24f0ded80efadb2133a3",
+      "confirmations": 15,
+      "vsize": 257,
+      "outputs": [
+        301000
+      ]
+    },
+    "override": {
+      "txid": "34d00abecc4ac55ef42dc523c68aba78a51799cbaec3239fe3142d2497e0b599",
+      "height": 4122,
+      "blockhash": "0574e1b48499ab7c720dc645e51af2b18920f0dfc13e52621626b70d47345782",
+      "confirmations": 14,
+      "vsize": 257,
+      "outputs": [
+        301000
+      ]
+    },
+    "settlement": {
+      "txid": "ff5d4a20351a33f431e4919325b4380f1ba81ac6ce0dbf254ed2ec472453a808",
+      "height": 4134,
+      "blockhash": "6a036e22a6ad53cfe5c6eecc9e727e4677366bbc99134f7dff7acb7ea98f8a88",
+      "confirmations": 2,
+      "vsize": 171,
+      "outputs": [
+        95000,
+        103000,
+        102000
+      ]
+    }
+  },
+  "states": [
+    {
+      "balances": [
+        100000,
+        100000,
+        100000
+      ],
+      "number": 0
+    },
+    {
+      "balances": [
+        95000,
+        100000,
+        105000
+      ],
+      "number": 1
+    },
+    {
+      "balances": [
+        95000,
+        103000,
+        102000
+      ],
+      "number": 2
+    }
+  ],
+  "contest_blocks": 12,
+  "new_participant_signatures_for_recovery": false,
+  "bolt_payments_tested": false,
+  "premature_check": {
+    "height": 4122,
+    "confirmations": 1,
+    "premature_settlement": {
+      "txid": "ff5d4a20351a33f431e4919325b4380f1ba81ac6ce0dbf254ed2ec472453a808",
+      "wtxid": "41e18ed69cdc739632cac238513b521449e02f24572088119f2ba405d5d75988",
+      "usage": 704,
+      "allowed": false,
+      "reject-reason": "non-BIP68-final",
+      "reject-details": "non-BIP68-final"
+    },
+    "broadcast": false
+  },
+  "source_sha256": {
+    "paperclip_lxp/channel.py": "570e3ecae3efe01aac4002f24ab67ff261237a488f6f4f87ed1a74b0ed49700b",
+    "scripts/signet_demo.py": "94badf8192a16401f2acce06356eb80ee4c1454420caaf94a6c5b82de39f6d58",
+    "scripts/participant.py": "f0df87428b66a8ad5040b510d20697c266db877e66ef7b88efe30470dd87c44a"
+  },
+  "node_binary_sha256": "1e586a18863badd1d5205ca32704fb5b1383287d03a4727a52fe6912547102bb"
+}

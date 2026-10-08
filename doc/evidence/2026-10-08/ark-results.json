@@ -1,0 +1,90 @@
+{
+  "network": "public-signet",
+  "profile": "paperclip-signet-offline-refresh-v1",
+  "status": "recovery_passed_planned_two_refresh_incomplete",
+  "started_utc": "2026-10-08T15:30:59.807939+00:00",
+  "finished_utc": "2026-10-08T15:56:48.024541+00:00",
+  "start_height": 4119,
+  "end_height": 4145,
+  "checks": [
+    {
+      "test": "one offline refresh funded; second round did not fund past expiry cutoff",
+      "passed": true,
+      "utc": "2026-10-08T15:48:53.087746+00:00"
+    },
+    {
+      "test": "watchman recovered stale exit through the completed refresh with ASP stopped",
+      "passed": true,
+      "utc": "2026-10-08T15:49:47.213455+00:00"
+    },
+    {
+      "test": "watchman restart retained exact signed funding and refund",
+      "passed": true,
+      "utc": "2026-10-08T15:50:08.107831+00:00"
+    },
+    {
+      "test": "owner recovered 98000 test sats with ASP and watchman stopped",
+      "passed": true,
+      "utc": "2026-10-08T15:56:47.537414+00:00"
+    },
+    {
+      "test": "signet, miner and mainnet fallback were never restarted",
+      "passed": true,
+      "utc": "2026-10-08T15:56:48.019711+00:00"
+    }
+  ],
+  "transactions": [
+    {
+      "step": "dedicated test reserve",
+      "txid": "0f077123d0b31178790dde1218bfd07a630ddd37545e94683418a57c00243437"
+    },
+    {
+      "step": "original backing",
+      "txid": "abf2a38c5dfd14322ac56e875214523238480a396c5c2f0064df038fb3cd96b7"
+    },
+    {
+      "step": "stale user unroll",
+      "txid": "fb3d1118b68a0c601994283f0f22f26a2f70f5a86587f64bc476b051efced234"
+    },
+    {
+      "step": "round 1 funding_hex",
+      "txid": "acb6834199ab8a1de9b6284ebd50f622cdee129e7a8425edbaf5f65fffae5856"
+    },
+    {
+      "step": "round 1 unroll_hex",
+      "txid": "71d672d3db7f73d32026e9a708af51925dca11b9b3b04d9366edeeb7059c4fda"
+    },
+    {
+      "step": "round 1 refund_hex",
+      "txid": "5002c4a5a13edb049409668bcd71bd8b463f684cd56b5306d5af74f1451ff92b"
+    },
+    {
+      "step": "independent user recovery",
+      "txid": "751ee901c5eb8655d79396299059be54696f629bfcfe9e19c1bea4f650fa2fb8"
+    }
+  ],
+  "binary_sha256": {
+    "wallet": "163aac0e308c9ea0f4e2c645426a89d29edb82beeee35609d8f19213f553da56",
+    "asp": "5b86d732bda6ddaf04a01952672e6de96afe8d58584009018d2530e16e22ef31",
+    "watchman": "99e399e0a19f72e4f0934fd011739f4f6c433059986b43d854ed450f38abb0fd"
+  },
+  "node_binary_sha256": "1e586a18863badd1d5205ca32704fb5b1383287d03a4727a52fe6912547102bb",
+  "wallet_offline_from": "2026-10-08T15:32:42.891859+00:00",
+  "wallet_offline_until": "2026-10-08T15:50:08.327563+00:00",
+  "services_stopped_utc": "2026-10-08T15:50:08.327563+00:00",
+  "harness_adjustment": "Remote RPC history rebuild was too slow; stopped test processes and resumed the same signed journal on node2 via its system ELF loader. Debug sections were stripped for transfer; runtime sections were compared before execution. No funding or signatures regenerated.",
+  "executed_service_sha256": {
+    "asp": "a6ba0026edb504440baaeb6b57c289a3c55ff5edc3fbcc53b4d77d67948c5e0f",
+    "watchman": "50faed88f816e23e1a49b933467090431ebaa269dffd75886c230ae0c451ba87"
+  },
+  "premature_claim": {
+    "txid": "751ee901c5eb8655d79396299059be54696f629bfcfe9e19c1bea4f650fa2fb8",
+    "wtxid": "f72eea0a514ab80f2ceefa5325a43fdc7f8b1660aae333cbab0a630974b23b69",
+    "usage": 736,
+    "allowed": false,
+    "reject-reason": "non-final",
+    "reject-details": "non-final"
+  },
+  "planned_two_refresh_test": "not_completed: remote observer startup and transfer delay crossed second funding cutoff",
+  "completed_refreshes": 1
+}
