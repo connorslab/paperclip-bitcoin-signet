@@ -1,4 +1,8 @@
-# Validation — 2026-10-05
+# Current scope
+
+This implementation accompanies the [unnumbered BIP draft](https://github.com/connorslab/bitcoin-rebindable-transactions). It keeps the three BIP 448 opcode semantics while retaining RDTS restrictions. Activation relaxes RDTS consensus rules and requires upgraded clients. The CSFS message cap is separate local policy. The dated records below describe each deployment stage.
+
+# Validation - 2026-10-05
 
 Native Ubuntu 26.04 x86_64 tests passed:
 

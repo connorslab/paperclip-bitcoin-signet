@@ -2,7 +2,7 @@
 
 **Experimental software. Test coins only, with no monetary value. Not a mainnet upgrade.**
 
-This repository starts from Bitcoin Knots `v29.4.2.knots20260508`
+This repository starts from [Bitcoin Knots](https://github.com/bitcoinknots/bitcoin) `v29.4.2.knots20260508`
 (`58398baf33e588779685ead478e6397bb28ed3d6`) and adds an isolated
 Bitcoin signet for testing the three operations proposed by [BIP448](https://bips.dev/448/):
 
@@ -13,10 +13,29 @@ Bitcoin signet for testing the three operations proposed by [BIP448](https://bip
 The network is live at `node2.paperclippool.xyz:48333`. See
 [validation results](doc/paperclip-signet-validation.md) for the tested scope.
 
+## Relationship to the unnumbered BIP draft
+
+This repository implements the [unnumbered BIP draft, Taproot Rebindable Transactions under RDTS](https://github.com/connorslab/bitcoin-rebindable-transactions). No BIP number has been assigned, and the draft has not been submitted to the upstream BIPs repository. Production activation is unspecified.
+
+### How this differs from upstream BIP 448
+
+The three opcode numbers and their meanings are unchanged. The adaptation is their execution and deployment under Bitcoin's RDTS rules.
+
+| Area | Upstream BIP 448 | This experiment |
+| --- | --- | --- |
+| Upgrade type | Tightens ordinary Tapscript OP_SUCCESS behavior, allowing a soft fork. | RDTS already rejects unknown OP_SUCCESS operations at consensus. Allowing these operations relaxes that rule and requires upgraded clients. |
+| Script limits | Uses ordinary Tapscript rules. | Retains 256-byte stack elements, at most seven Taproot Merkle branch hashes, no annexes, and no Tapscript OP_IF or OP_NOTIF. |
+| Hashing and signatures | BIP 446 tagged SHA256 template hashes and BIP 340 signatures. | Same definitions. Header hashing does not change template hashing; CSFS does not automatically inherit transaction-signature replay protection. |
+| Deployment | Activation is unspecified. | Live on experimental signet, with custom signet and regtest support. Production activation remains unspecified. |
+
+The configurable 32-byte CSFS message cap is separate relay and local-mining policy, not a consensus requirement. A construction valid under upstream BIP 448 may fail here if it needs features prohibited by RDTS.
+
+## Network identity
+
 Repository wording, filenames and new-install examples use Bitcoin/BTC.
 The previous covenant option remains accepted as a hidden compatibility alias,
 and the established network discriminator is unchanged so existing peers stay
-on the same signet. Upstream addresses, encoded test data and contributor names
+on the same network, provided they upgrade for the new rules. Upstream addresses, encoded test data and contributor names
 are preserved verbatim.
 
 When upgrading an existing installation, retain its current data directory,
@@ -109,7 +128,7 @@ The unit suite includes the published BIP446 basic vectors and CSFS checks.
 
 Release binaries target **Ubuntu 26.04 x86_64**. Runtime packages are
 `libevent-extra-2.1-7t64`, `libevent-pthreads-2.1-7t64`, and `libsqlite3-0`.
-Check release SHA256SUMS. For other systems, build from source.
+Check release SHA256SUMS and use a build with INTERNALKEY support (paperclip-signet2-bip448 or later). Earlier binaries cannot follow the current chain past its first INTERNALKEY spend. Build current source if a compatible release binary is unavailable.
 
 ```sh
 mkdir -m 700 "$HOME/.paperclip-bitcoin-signet"
@@ -132,12 +151,12 @@ After receiving at least 0.0011 test BTC:
 
 ```sh
 python3 contrib/signet/covenant_demo.py --cli="$PWD/build/bin/bitcoin-cli" \
-  --datadir="$HOME/.paperclip-bitcoin-signet" --wallet=test
+  --datadir="$HOME/.paperclip-bitcoin-signet" --wallet=test --internal-key
 ```
 
-This funds and spends a TEMPLATEHASH + CSFS output, and checks rejection of an
+This funds and spends a TEMPLATEHASH + INTERNALKEY + CSFS output, and checks rejection of an
 altered output. It prints transaction IDs; verify confirmation in the next block.
-Its CSFS key is deliberately public and its internal taproot key is a NUMS point.
+The demonstration key is public and also permits key-path spending. This tests opcode execution, not a secure covenant protocol. Omit --internal-key for the earlier two-operation example with a NUMS internal key.
 Never use this demonstration with anything of value. New test networks lack fee
 estimates; specify an explicit fee, such as `fee_rate=1` sat/vB for wallet sends.
 
@@ -147,14 +166,13 @@ Example systemd services are in `contrib/signet/paperclip/`. Keep this network i
 a dedicated data directory. Do not point it at a mainnet directory. Bind RPC to
 loopback and use its cookie authentication; expose only the signet P2P port.
 The block-signing key belongs only on the operator's signer, never in joining
-configuration, release archives or this repository. Never change consensus
-options in an existing datadir; network-rule changes require a new test network.
+configuration, release archives or this repository. Consensus changes require a coordinated network upgrade or a new test network. This deployment retains the existing chain and challenge but requires upgraded clients.
 
 ## Attribution
 
 Bitcoin Knots and Bitcoin Core remain the upstream foundations. TEMPLATEHASH is
 specified by Gregory Sanders, Antoine Poinsot and Steven Roose; CSFS by Brandon
-Black and Jeremy Rubin. Source licensing remains MIT except where individual
+Black and Jeremy Rubin; INTERNALKEY by Brandon Black. Source licensing remains MIT except where individual
 files specify otherwise; the imported BIP446 vectors are CC0-1.0. This deployment
 and integration are an independent Paperclip experiment, not an endorsement by
 those authors or upstream projects.
