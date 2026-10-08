@@ -31,6 +31,8 @@ The opcode numbers are unchanged. CSFS is narrowed to exactly the current input'
 
 CSFS has a fixed consensus requirement: exactly 32 bytes equal to the current input's template hash. The old `-maxcsfsmsgsize` option is removed. Signet block activation is height 3250; updated nodes reject other CSFS messages from the mempool immediately. A construction valid under upstream BIP 448 may fail here if it needs features prohibited by RDTS.
 
+Explore the [visual proposal guide](https://node2.paperclippool.xyz/signet/proposal) for the BIP448 comparison and possible Ark/Lightning applications.
+
 ## Network identity
 
 Repository wording, filenames and new-install examples use Bitcoin/BTC.
